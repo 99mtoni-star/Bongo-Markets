@@ -8,7 +8,7 @@ import re
 from alembic import context
 from sqlalchemy import create_engine, pool, text
 
-from app.db import models  # noqa: F401  (register tables on Base.metadata)
+from app.db import all_models  # noqa: F401  (register every table on Base.metadata)
 from app.db.base import SCHEMA, Base
 
 ROLE_RE = re.compile(r"^[a-z_][a-z0-9_]{0,62}$")

@@ -61,6 +61,18 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool = True
 
+    # Authentication (M03). Cookies are always HttpOnly; Secure is mandatory outside dev/test.
+    cookie_secure: bool = True
+    session_ttl_hours: int = 24 * 7          # absolute lifetime
+    session_idle_hours: int = 48             # idle timeout
+    login_max_failures: int = 5              # AUTH-007
+    lockout_minutes: int = 15
+    otp_ttl_minutes: int = 10
+    reset_ttl_minutes: int = 15
+    otp_max_attempts: int = 5
+    default_phone_region: str = "TZ"         # mobile-number-first identity (ID-002)
+    notifier: str = "dev"                    # "dev" keeps SMS/email in memory; production needs a provider
+
     @property
     def is_production_like(self) -> bool:
         return self.environment in (Environment.STAGING, Environment.PRODUCTION)
@@ -70,6 +82,8 @@ class Settings(BaseSettings):
         db = self.database_url.get_secret_value()
         if not db.startswith(POSTGRES_SCHEMES):
             raise ValueError("BM_DATABASE_URL must point to PostgreSQL")
+        if "*" in self.cors_origins:
+            raise ValueError("BM_CORS_ORIGINS must list approved origins; '*' is not allowed (SEC-WEB-003)")
         if not self.is_production_like:
             return self
         problems: list[str] = []
@@ -80,6 +94,10 @@ class Settings(BaseSettings):
             problems.append("BM_DEBUG must be false")
         if "*" in self.allowed_hosts:
             problems.append("BM_ALLOWED_HOSTS must not contain '*'")
+        if not self.cookie_secure:
+            problems.append("BM_COOKIE_SECURE must be true")
+        if self.notifier == "dev":
+            problems.append("BM_NOTIFIER must name a real SMS/email provider, not 'dev'")
         if problems:
             raise ValueError("Unsafe configuration for {}: {}".format(self.environment.value, "; ".join(problems)))
         return self

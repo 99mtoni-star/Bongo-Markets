@@ -47,7 +47,8 @@ def test_production_rejects_unsafe_settings(make_settings):
         )
     msg = str(exc.value)
     assert "BM_DEBUG" in msg and "BM_ALLOWED_HOSTS" in msg
-    ok = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES)
+    ok = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES,
+                      BM_NOTIFIER="sms-gateway")
     assert ok.is_production_like
 
 
@@ -147,7 +148,9 @@ def test_evidence_bundle(tmp_path):
 @pytest.mark.tid("M01-T011")
 def test_no_hardcoded_secrets():
     pattern = re.compile(
-        r"""(?i)(password|secret|api[_-]?key|token)\s*=\s*["'][^"']{8,}["']|-----BEGIN [A-Z ]*PRIVATE KEY"""
+        # Uppercase enum labels such as RESET_PASSWORD = "RESET_PASSWORD" are not secrets.
+        r"""(?i:password|secret|api[_-]?key|token)\s*=\s*["'](?![A-Z_]+["'])[^"']{8,}["']"""
+        r"""|-----BEGIN [A-Z ]*PRIVATE KEY"""
     )
     offenders = [str(p) for p in (ROOT / "app").rglob("*.py") if pattern.search(p.read_text(encoding="utf-8"))]
     assert offenders == []
@@ -164,7 +167,8 @@ def test_status_page(client):
 
 @pytest.mark.tid("M01-T013")
 def test_docs_disabled_in_production(make_settings):
-    s = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES)
+    s = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES,
+                      BM_NOTIFIER="sms-gateway")
     c = TestClient(create_app(s), base_url="http://localhost")
     assert c.get("/docs").status_code == 404
     assert c.get("/openapi.json").status_code == 404

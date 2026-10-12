@@ -178,3 +178,128 @@ tests:
     requirements: [SEC-CFG-005]
     title: README and runbook share one authoritative deployment order
     protected: false
+  - id: M03-T001
+    module: M03
+    requirements: [AUTH-001, AUTH-003, SEC-001, SEC-PWD-001]
+    title: Registration creates a pending user with an Argon2id hash and sends an SMS code
+    protected: true
+  - id: M03-T002
+    module: M03
+    requirements: [AUTH-002]
+    title: Phone numbers normalize to E.164 and email to trimmed lowercase
+    protected: true
+  - id: M03-T003
+    module: M03
+    requirements: [AUTH-006, SEC-WEB-002]
+    title: Phone verification activates the account and sets a hardened session cookie
+    protected: true
+  - id: M03-T004
+    module: M03
+    requirements: [AUTH-006]
+    title: Verification codes enforce attempt limits and expiry
+    protected: true
+  - id: M03-T005
+    module: M03
+    requirements: [ID-006]
+    title: Registering an existing number is indistinguishable from a new one
+    protected: true
+  - id: M03-T006
+    module: M03
+    requirements: [SEC-PWD-005, ID-006]
+    title: Login succeeds; unknown, wrong and malformed identifiers fail identically
+    protected: true
+  - id: M03-T007
+    module: M03
+    requirements: [AUTH-007]
+    title: Repeated failures lock the account temporarily without revealing it
+    protected: true
+  - id: M03-T008
+    module: M03
+    requirements: [SEC-009]
+    title: Login is rate limited per identifier with Retry-After
+    protected: true
+  - id: M03-T009
+    module: M03
+    requirements: [SEC-009]
+    title: Registration is rate limited per client IP
+    protected: true
+  - id: M03-T010
+    module: M03
+    requirements: [SEC-PWD-003, SEC-PWD-004]
+    title: Password policy rejects weak/common passwords; long passwords are never truncated
+    protected: true
+  - id: M03-T011
+    module: M03
+    requirements: [SEC-PWD-006, SEC-PWD-005]
+    title: Password reset codes are one-time, hashed, short-lived and generic
+    protected: true
+  - id: M03-T012
+    module: M03
+    requirements: [SEC-014]
+    title: Password reset revokes every session
+    protected: true
+  - id: M03-T013
+    module: M03
+    requirements: [SEC-014]
+    title: Password change revokes other sessions and issues a fresh one
+    protected: true
+  - id: M03-T014
+    module: M03
+    requirements: [SEC-010]
+    title: Auth events are audited without passwords, codes, tokens or hashes
+    protected: true
+  - id: M03-T015
+    module: M03
+    requirements: [AUTH-001]
+    title: Logout revokes the session server-side
+    protected: true
+  - id: M03-T016
+    module: M03
+    requirements: [SEC-WEB-003]
+    title: CORS allows only approved origins; cross-site POSTs are blocked
+    protected: true
+  - id: M03-T017
+    module: M03
+    requirements: [ID-001, SEC-INV-007]
+    title: Application credentials cannot rewrite identity columns or delete users/history
+    protected: true
+  - id: M03-T018
+    module: M03
+    requirements: [ID-002]
+    title: Email is a secondary identifier usable only after verification
+    protected: true
+  - id: M03-T019
+    module: M03
+    requirements: [AUTH-001]
+    title: Swahili web registration flow works end to end and requires CSRF tokens
+    protected: false
+  - id: M03-T020
+    module: M03
+    requirements: [SEC-WEB-002]
+    title: Sessions expire on idle timeout and absolute lifetime
+    protected: true
+  - id: M03-T021
+    module: M03
+    requirements: [AUTH-006]
+    title: Pending accounts need verification; only the correct password reveals that
+    protected: true
+  - id: M03-T022
+    module: M03
+    requirements: [ID-001]
+    title: Profile API never exposes the internal id or password hash
+    protected: true
+  - id: M03-T023
+    module: M03
+    requirements: [AUTH-007, DEV-001]
+    title: Module gate refuses modules without an approved Design Ready note
+    protected: true
+  - id: M03-T024
+    module: M03
+    requirements: [SEC-010]
+    title: Development SMS inbox is unavailable outside development/test
+    protected: true
+  - id: M03-T025
+    module: M03
+    requirements: [ID-006]
+    title: Abandoned unverified sign-ups can be replaced by the real owner
+    protected: false

@@ -125,8 +125,10 @@ def db_client(pg, make_settings):
 
     from app.main import create_app
 
-    app = create_app(make_settings(BM_ENVIRONMENT="test", BM_DATABASE_URL=pg.app_url))
-    return TestClient(app, raise_server_exceptions=False)
+    app = create_app(make_settings(BM_ENVIRONMENT="test", BM_DATABASE_URL=pg.app_url,
+                                   BM_SECRET_KEY="test-secret-key-0123456789-abcdefghijkl"))
+    # HTTPS so Secure cookies behave exactly as in a browser.
+    return TestClient(app, raise_server_exceptions=False, base_url="https://testserver")
 
 
 @pytest.fixture

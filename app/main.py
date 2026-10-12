@@ -13,6 +13,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api import health, system
+from app.auth import api as auth_api
+from app.auth import web as auth_web
+from app.auth.notify import build_notifier
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, request_id_var
 from app.db.session import session_factory
@@ -45,6 +48,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
     app.state.session_factory = session_factory(settings)  # engine connects lazily
+    app.state.notifier = build_notifier(settings.notifier)
 
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     if settings.cors_origins:
@@ -55,6 +59,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
             allow_headers=["Content-Type", "X-Request-ID", "X-CSRF-Token"],
         )
+
+    allowed_origins = set(settings.cors_origins)
+
+    @app.middleware("http")
+    async def origin_guard(request: Request, call_next):
+        # Cookie-authenticated state changes must come from our own origin or an approved
+        # one (SEC-WEB-003; full CSRF policy in M06). Browsers always send Origin on POST.
+        if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+            origin = request.headers.get("origin")
+            if origin and origin != "null":
+                own = {f"{request.url.scheme}://{request.headers.get('host', '')}"}
+                if origin not in own and origin not in allowed_origins:
+                    return JSONResponse({"error": {"code": 403, "message": "Origin not allowed"}}, status_code=403)
+            elif origin == "null":
+                return JSONResponse({"error": {"code": 403, "message": "Origin not allowed"}}, status_code=403)
+        return await call_next(request)
 
     @app.middleware("http")
     async def request_context(request: Request, call_next):
@@ -101,6 +121,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(system.router, prefix="/api/v1")
+    app.include_router(auth_api.router, prefix="/api/v1")
+    app.include_router(auth_web.router)
     app.include_router(pages.router)
     return app
 

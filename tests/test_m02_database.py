@@ -117,7 +117,7 @@ def test_migrations_upgrade_downgrade_roundtrip(pg):
     assert run_alembic(pg.owner_url, "downgrade", "base").returncode == 0
     res = run_alembic(pg.owner_url, "upgrade", "head")
     assert res.returncode == 0, res.stderr
-    assert "0001" in run_alembic(pg.owner_url, "current").stdout
+    assert "(head)" in run_alembic(pg.owner_url, "current").stdout
 
 
 @pytest.mark.tid("M02-T009")
@@ -127,7 +127,7 @@ def test_models_match_migrations(pg):
     from alembic.migration import MigrationContext
     from sqlalchemy import create_engine
 
-    from app.db import models  # noqa: F401
+    from app.db import all_models  # noqa: F401
     from app.db.base import Base
 
     # Compare with an explicit schema: the owner role defaults to search_path=bm, which would
@@ -208,7 +208,7 @@ def test_backup_is_encrypted_and_restore_test_passes(pg, tmp_path, backup_key):
     assert not enc.read_bytes().startswith(b"PGDMP")  # pg_dump magic must not be visible
     assert enc.read_bytes()[:8] == b"Salted__"
     manifest = json.loads(enc.with_suffix("").with_suffix(".json").read_text())
-    assert manifest["alembic_revision"] == "0001"
+    assert manifest["alembic_revision"] == run_alembic(pg.owner_url, "current").stdout.split()[0]
     report = restore_test(enc, pg.admin_url, pg.owner_url, backup_key)
     assert report["result"] == "PASS", report
     assert {"audit_logs", "system_flags", "alembic_version"} <= set(report["tables"])

@@ -16,6 +16,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def design_ready(module: str, docs_root: Path | None = None) -> bool:
+    """DEV-001: a module may not pass its gate without an approved design note (STD-001)."""
+    design = (docs_root or ROOT / "docs" / "modules") / module / "design.md"
+    return design.is_file() and "Design Ready: YES" in design.read_text(encoding="utf-8")
+
+
 def step(title: str, cmd: list[str]) -> None:
     print(f"\n=== {title} ===\n$ {' '.join(cmd)}", flush=True)
     rc = subprocess.run(cmd, cwd=ROOT).returncode
@@ -29,6 +35,9 @@ def main() -> None:
         print("usage: gate.py M01")
         sys.exit(2)
     module = sys.argv[1]
+    if not design_ready(module):
+        print(f"GATE FAILED: docs/modules/{module}/design.md is missing or not 'Design Ready: YES' (STD-001)")
+        sys.exit(1)
     py = sys.executable
     step("Lint", [py, "-m", "ruff", "check", "."])
     step("Test catalogue", [py, "scripts/check_catalogue.py"])
