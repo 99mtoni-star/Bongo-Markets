@@ -2,7 +2,7 @@
 
 **Status:** DEVELOPER_COMPLETE (not closed; independent review pending, per DEV-007)
 **Gate:** `python scripts/gate.py M07` → PASS (focused 13, protected 106, full 123), run against PostgreSQL 16
-**Evidence bundle:** `evidence/M07/20261012T141743Z`, digest `860fd60f50ed2dba1b8b4332fbf2137a754b8c63841454a07689bcaeebf40649`. Walkthrough: `evidence/M07/screenshots/`.
+**Evidence bundle:** `evidence/M07/20261012T142009Z`, digest `8b6d0b588b8b2e3354fdb4a09ccf006c1e65fe4f28a6aa3b9efca5a50f7e01cf`. Walkthrough: `evidence/M07/screenshots/`.
 
 | Req | Result | Tests (M07-T…) |
 |-----|--------|-------|
@@ -33,3 +33,4 @@
 | F-M07-001 | Low | IMP | Ownership trigger initializer referenced a column absent on one table | Initializer removed | M07-T003 | Fixed |
 | F-M07-002 | Low | TST | Catalogue YAML broke on a colon in a title | All titles quoted | M01-T009 | Fixed |
 | F-M07-003 | Low | DES | Unstyled selects and stacked inline admin buttons (visual review) | CSS rules for select and inline forms | visual | Fixed |
+| F-M07-004 | Low | PRC | Finish script ignored a failing evidence step (lint) and still committed | pipefail + stop on non-zero; evidence re-run clean | this bundle | Fixed |

@@ -220,7 +220,8 @@ def test_ownership_transfer_is_atomic(team, owner_conn, monkeypatch):
 def test_verification_lifecycle_with_history(team, owner_conn):
     slug = team.shop["slug"]
     c = team.act("owner")
-    assert c.post(f"/api/v1/admin/shops/{slug}/status", json={"status": "ACTIVE", "reason": "looks good"}).status_code == 403
+    r = c.post(f"/api/v1/admin/shops/{slug}/status", json={"status": "ACTIVE", "reason": "looks good"})
+    assert r.status_code == 403
     c.cookies.clear()
     make_admin(c, owner_conn, role="PLATFORM_ADMIN")
     assert c.get("/api/v1/admin/shops/pending").status_code == 200
