@@ -5,7 +5,23 @@ Built module by module (M01–M20) against **KAR-PROJ-SA-RTM-006 v1.3**, which c
 
 **Stack:** Python 3.11+, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 15+ (every environment, including tests).
 
-## Quick start
+## Run it on your own computer (Windows, macOS, Linux)
+
+Needs **Python 3.11+** and **PostgreSQL 15+**.
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate            # Windows  (macOS/Linux: source .venv/bin/activate)
+pip install -r requirements-dev.txt
+python scripts/local_demo.py setup  # once: asks for the "postgres" password, creates DB + demo shops
+python scripts/local_demo.py run    # opens http://localhost:8000/soko
+```
+
+Demo accounts are printed at the end of `setup`. Verification codes and delivery PINs appear at
+http://localhost:8000/dev/sms (development only). Running `setup` again resets the database role passwords;
+restart `run` afterwards.
+
+## Quick start (manual)
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
