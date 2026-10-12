@@ -790,7 +790,7 @@ tests:
     protected: true
   - id: M12-T004
     module: M12
-    requirements: [ORD-001, ORD-006, ORD-LC-005]
+    requirements: [ORD-001, ORD-006, ORD-LC-005, ORD-LC-008]
     title: "Verified payment confirms the order and consumes reserved stock exactly once"
     protected: true
   - id: M12-T005

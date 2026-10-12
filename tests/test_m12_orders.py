@@ -14,7 +14,7 @@ import psycopg
 import pytest
 
 from tests.conftest import TEST_CSRF
-from tests.test_m11_cart_checkout import Market, pay, place
+from tests.test_m11_cart_checkout import Market, pay, place, put
 
 ROOT = Path(__file__).resolve().parents[1]
 COURIER = {"courier_name": "Juma Bodaboda", "courier_phone": "0715 222 333"}
@@ -143,6 +143,12 @@ def test_verified_payment_confirms_order_and_consumes_stock_once(mk, owner_conn,
     assert hist == ["PENDING_PAYMENT", "CONFIRMED"]
     assert owner_conn.execute("SELECT count(*) FROM bm.audit_logs WHERE action='order.payment_confirmed' "
                               "AND details->>'number'=%s", (number,)).fetchone()[0] == 1
+    # ORD-LC-008: once the last unit is held by one order, another buyer's checkout cannot take it
+    owner_conn.execute("UPDATE bm.products SET stock=1, reserved=0 WHERE public_id=%s", (mk.kuku,))
+    place(mk, "buyer", items=[(mk.kuku, 1)])
+    c2 = mk.act("buyer2")
+    assert put(c2, mk.kuku, 1).status_code == 409  # nothing available to add
+    assert mk.stock(mk.kuku) == (1, 1)
 
 
 # --------------------------------------------------------------------------- ORD-LC-002, DEL-001
