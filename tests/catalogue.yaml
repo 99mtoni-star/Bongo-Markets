@@ -678,3 +678,43 @@ tests:
     requirements: [PRD-001, PRD-005]
     title: "Swahili seller flow: add product, upload photo, publish, visible to customers"
     protected: false
+  - id: M09-T001
+    module: M09
+    requirements: [MKT-001, BR-011]
+    title: "Marketplace lists only active, marketplace products of active shops across shops"
+    protected: true
+  - id: M09-T002
+    module: M09
+    requirements: [MKT-002, MKT-001]
+    title: "Search and filters (name, description, shop, category, price, region) with safe input"
+    protected: true
+  - id: M09-T003
+    module: M09
+    requirements: [MKT-003]
+    title: "Batches of 24 until exhausted, no gaps or duplicates, correct sort orders"
+    protected: true
+  - id: M09-T004
+    module: M09
+    requirements: [MKT-006]
+    title: "Featured is a moderator-set highlight, never a condition for listing"
+    protected: true
+  - id: M09-T005
+    module: M09
+    requirements: [MKT-004, MKT-005]
+    title: "Shop-scoped listing and category headings from the shop's own products"
+    protected: true
+  - id: M09-T006
+    module: M09
+    requirements: [MKT-001]
+    title: "Product page exists only for publicly visible products"
+    protected: true
+  - id: M09-T007
+    module: M09
+    requirements: [MKT-003]
+    title: "Soko web page loads 24 per batch with a no-JavaScript 'Pakia zaidi' link"
+    protected: false
+  - id: M09-T008
+    module: M09
+    requirements: [CAP-B2C-001, CAP-MOQ-001, CAP-RFQ-001, CAP-BRD-001, CAP-SPON-001, CAP-UX-001, V13-REQ-004]
+    title: "Deferred capabilities and search scaling are recorded"
+    protected: false

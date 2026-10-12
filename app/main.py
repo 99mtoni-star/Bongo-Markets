@@ -26,6 +26,8 @@ from app.catalog.media import LocalStorage
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, request_id_var
 from app.db.session import session_factory
+from app.market import api as market_api
+from app.market import web as market_web
 from app.shops import api as shops_api
 from app.shops import web as shops_web
 from app.web import pages
@@ -168,6 +170,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(catalog_api.router, prefix="/api/v1")
     app.include_router(catalog_api.media_router)
     app.include_router(catalog_web.router)
+    app.include_router(market_api.router, prefix="/api/v1")
+    app.include_router(market_web.router)
     app.include_router(security_web.router)
     app.include_router(auth_web.router)
     app.include_router(pages.router)

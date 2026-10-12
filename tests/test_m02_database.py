@@ -134,9 +134,12 @@ def test_models_match_migrations(pg):
     # make the dialect treat "bm" as the default (unnamed) schema.
     engine = create_engine(pg.owner_url, connect_args={"options": "-csearch_path=public"})
     with engine.connect() as conn:
-        ctx = MigrationContext.configure(conn, opts={"include_schemas": True, "compare_type": True,
-                                                     "version_table_schema": "bm",
-                                                     "include_name": lambda n, t, p: t != "schema" or n == "bm"})
+        # Indexes defined in raw SQL (expression/partial search indexes, M09) are reviewed in their migration.
+        sql_only = {"ix_products_name_trgm", "ix_shops_name_trgm", "ix_products_market_newest",
+                    "ix_products_market_price"}
+        ctx = MigrationContext.configure(conn, opts={
+            "include_schemas": True, "compare_type": True, "version_table_schema": "bm",
+            "include_name": lambda n, t, p: (t != "schema" or n == "bm") and not (t == "index" and n in sql_only)})
         diff = [d for d in compare_metadata(ctx, Base.metadata) if "alembic_version" not in str(d)]
     engine.dispose()
     assert diff == []

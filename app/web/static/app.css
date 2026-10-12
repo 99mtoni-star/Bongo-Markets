@@ -88,3 +88,14 @@ img.thumb,span.thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;b
 .gallery{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}.gallery figure{margin:0;text-align:center}
 .gallery img{width:120px;height:120px;object-fit:cover;border-radius:8px;display:block}
 input[type=file]{padding:9px}
+form.filters{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1.2fr auto;gap:8px;margin:10px 0 6px}
+form.filters input,form.filters select{padding:10px}form.filters button.primary{margin:0;padding:10px 18px}
+@media (max-width:900px){form.filters{grid-template-columns:1fr 1fr}form.filters input[name=q]{grid-column:1/-1}}
+a.pcard{color:inherit;text-decoration:none;display:block}a.pcard:hover{border-color:var(--brand)}
+.shopname{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.more{margin:18px 0;text-align:center}.more a.btn{display:inline-block;min-width:240px}
+.pdetail{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0}
+.pimages img,.pimages .noimg{width:100%;border-radius:12px;display:block;margin-bottom:8px;aspect-ratio:1/1;object-fit:cover}
+.pimages .noimg{display:flex;align-items:center;justify-content:center;background:var(--line);color:var(--muted)}
+.price.big{font-size:26px}
+@media (max-width:700px){.pdetail{grid-template-columns:1fr}}

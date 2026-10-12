@@ -108,10 +108,3 @@ def terms(request: Request, ctx: SessionContext | None = Depends(optional_sessio
     return _html(request, "Masharti", TERMS, ctx=ctx)
 
 
-SOON = '<div class="card"><h1>{title}</h1><p class="sub">{text}</p><a class="btn" href="/">Rudi mwanzo</a></div>'
-
-
-@router.get("/soko", response_class=HTMLResponse)
-def market_soon(request: Request, ctx: SessionContext | None = Depends(optional_session)) -> HTMLResponse:
-    # Replaced by the marketplace in M09.
-    return _html(request, "Soko", SOON.format(title="Soko", text="Soko kuu linajengwa (Module 09)."), ctx=ctx)
