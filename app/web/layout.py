@@ -23,6 +23,7 @@ class Nav:
     csrf: str = ""
     is_admin: bool = False
     has_shops: bool = False
+    cart_count: int = 0
     current: str = ""
     links: list[tuple[str, str]] = dc_field(default_factory=list)
 
@@ -30,6 +31,8 @@ class Nav:
 def _links(nav: Nav) -> list[tuple[str, str]]:
     links = [("/soko", "Soko")]
     if nav.user_name:
+        links.append(("/kikapu", f"Kikapu ({nav.cart_count})" if nav.cart_count else "Kikapu"))
+        links.append(("/oda", "Oda zangu"))
         links.append(("/maduka", "Maduka yangu" if nav.has_shops else "Fungua duka"))
         links.append(("/akaunti", "Akaunti"))
         if nav.is_admin:

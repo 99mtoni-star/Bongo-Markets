@@ -142,7 +142,8 @@ def _manage_body(request: Request, svc: ShopService, ctx: SessionContext, slug: 
 {f"<div class='alert err'><b>Stock inakaribia kuisha:</b><ul>{low}</ul></div>" if low else ""}"""
     return f"""<div class="hero"><h1>{escape(shop.name)}</h1>
 <p>{pill(shop.status)} · Jukumu lako: <b>{escape(ROLE_SW[me.role_code])}</b> ·
-<a href="/maduka/{escape(slug)}/bidhaa">Bidhaa</a> · <a href="/duka/{escape(slug)}">Ukurasa wa wateja →</a></p></div>
+<a href="/maduka/{escape(slug)}/bidhaa">Bidhaa</a> ·
+{f'<a href="/maduka/{escape(slug)}/oda">Oda</a> · ' if "shop.orders.view" in dash["permissions"] else ""}<a href="/duka/{escape(slug)}">Ukurasa wa wateja →</a></p></div>
 {alert(notice, "ok")}{banner}{stats}
 <div class="card"><h1 class="sm">Wanachama wa duka</h1>{err("wanachama")}
 <table><tbody>{''.join(rows)}</tbody></table>{add_form}</div>

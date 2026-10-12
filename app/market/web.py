@@ -15,6 +15,7 @@ from app.catalog.models import Category
 from app.catalog.web import money
 from app.db.session import get_db
 from app.market import service as market
+from app.web.layout import alert
 
 router = APIRouter(include_in_schema=False)
 
@@ -66,7 +67,7 @@ def marketplace(request: Request, q: str = "", category: str = "", min_price: st
 
 
 @router.get("/bidhaa/{product_id}", response_class=HTMLResponse)
-def product_page(product_id: str, request: Request, ctx: SessionContext | None = Depends(optional_session),
+def product_page(product_id: str, request: Request, kosa: str = "", ctx: SessionContext | None = Depends(optional_session),
                  db=Depends(get_db)):
     p = market.product_detail(db, product_id[:40])
     if p is None:
@@ -81,5 +82,5 @@ def product_page(product_id: str, request: Request, ctx: SessionContext | None =
 <p>{escape(p['description'] or '')}</p>
 <p>Inauzwa na <a href="/duka/{escape(p['shop']['slug'])}"><b>{escape(p['shop']['name'])}</b></a>
 {(' · ' + escape(p['shop']['region'])) if p['shop']['region'] else ''}</p>
-{buy_box(request, ctx, p)}</div></div>"""
+{alert(kosa[:200] or None)}{buy_box(request, ctx, p)}</div></div>"""
     return _html(request, p["name"], body, ctx=ctx)

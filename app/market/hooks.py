@@ -1,9 +1,9 @@
-"""Purchase box on the product page (filled in by M11 cart)."""
+"""Purchase box on the product page (M11 cart form)."""
 
 from __future__ import annotations
 
 
 def buy_box(request, ctx, product: dict) -> str:
-    if product["available_quantity"] <= 0:
-        return "<p class='alert err'>Bidhaa hii imeisha kwa sasa.</p>"
-    return f"<p class='hint'>Zinapatikana: {product['available_quantity']}</p>"
+    from app.orders.web import buy_box as cart_buy_box  # M11 add-to-cart form
+
+    return cart_buy_box(request, ctx, product)

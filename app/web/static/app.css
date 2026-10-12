@@ -99,3 +99,30 @@ a.pcard{color:inherit;text-decoration:none;display:block}a.pcard:hover{border-co
 .pimages .noimg{display:flex;align-items:center;justify-content:center;background:var(--line);color:var(--muted)}
 .price.big{font-size:26px}
 @media (max-width:700px){.pdetail{grid-template-columns:1fr}}
+/* M11/M12: cart, checkout, orders */
+.card.wide{max-width:none}
+td.num,th.num{text-align:right;white-space:nowrap}
+tfoot td{font-weight:600}
+table.cart{margin-bottom:6px}
+form.qty{display:flex;gap:8px;align-items:center;margin:0}form.qty input{width:80px;padding:7px 8px}
+small.bad{color:var(--err);font-weight:600}
+fieldset.pay{border:1px solid var(--line);border-radius:8px;margin:16px 0 0;padding:6px 12px 12px}
+fieldset.pay legend{font-weight:600;font-size:14px;padding:0 6px}
+label.radio{display:flex;gap:8px;align-items:center;font-weight:400;margin:8px 0}
+label.radio input{width:auto}label.radio.muted{color:var(--muted)}
+p.total{font-size:18px;margin:18px 0 0}
+form.buybox{max-width:320px}
+.ogrid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin:16px 0}
+.ogrid .tile{margin-top:12px}.ogrid>.tile{margin-top:0}
+ol.timeline{margin:0;padding-left:20px}ol.timeline li{margin:0 0 10px}ol.timeline small{display:block;color:var(--muted)}
+.tile.actions{margin:16px 0;max-width:520px}.tile.actions form{margin:0 0 10px}
+.tile.actions details{margin-top:10px}.tile.actions summary{cursor:pointer;color:var(--brand);font-weight:600}
+a.btn.wide,button.btn{width:100%}
+button.btn.ghost{background:transparent;color:var(--brand);border:2px solid var(--brand);padding:12px;border-radius:8px;
+font:inherit;font-weight:600;cursor:pointer}
+button.primary.danger{background:var(--err)}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}
+nav.tabs a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-size:14px;
+background:var(--card)}
+nav.tabs a[aria-current=page]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+@media (max-width:700px){.ogrid{grid-template-columns:1fr}table.cart th:nth-child(4),table.cart td:nth-child(4){display:none}}

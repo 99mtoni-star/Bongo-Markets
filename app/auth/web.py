@@ -50,6 +50,10 @@ def nav_for(request: Request, ctx: SessionContext | None) -> Nav:
             if db.execute(sql("SELECT to_regclass('bm.shop_users') IS NOT NULL")).scalar_one():
                 nav.has_shops = db.execute(sql("SELECT 1 FROM bm.shop_users WHERE user_id = :u "
                                                "AND removed_at IS NULL LIMIT 1"), {"u": ctx.user.id}).first() is not None
+            if db.execute(sql("SELECT to_regclass('bm.cart_items') IS NOT NULL")).scalar_one():
+                nav.cart_count = db.execute(sql("SELECT count(*) FROM bm.cart_items i JOIN bm.carts c ON c.id = i.cart_id "
+                                                "WHERE c.user_id = :u AND c.status = 'ACTIVE'"),
+                                            {"u": ctx.user.id}).scalar_one()
     return nav
 
 

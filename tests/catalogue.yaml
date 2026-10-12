@@ -733,3 +733,103 @@ tests:
     requirements: [SHOP-005]
     title: "Shop admin operation matrix per role (owner/manager/staff/outsider)"
     protected: true
+  - id: M11-T001
+    module: M11
+    requirements: [BR-018, CART-001, CART-002]
+    title: "One active cart per user and one row per product, enforced by the database and safe under concurrency"
+    protected: true
+  - id: M11-T002
+    module: M11
+    requirements: [CART-003, BR-014]
+    title: "Cart never accepts prices or hidden products from the client"
+    protected: true
+  - id: M11-T003
+    module: M11
+    requirements: [CART-003, CART-001, BR-014]
+    title: "Checkout re-reads prices from the database and stops on a changed total"
+    protected: true
+  - id: M11-T004
+    module: M11
+    requirements: [ORD-001]
+    title: "Checkout is idempotent per Idempotency-Key"
+    protected: true
+  - id: M11-T005
+    module: M11
+    requirements: [CART-003, ORD-LC-005]
+    title: "Checkout reserves stock and creates one order per shop"
+    protected: true
+  - id: M11-T006
+    module: M11
+    requirements: [ORD-006, CART-001]
+    title: "Checkout is all-or-nothing when stock or availability changed"
+    protected: true
+  - id: M11-T007
+    module: M11
+    requirements: [ORD-LC-008, ORD-LC-005]
+    title: "Concurrent checkouts for the last unit: only one wins"
+    protected: true
+  - id: M11-T008
+    module: M11
+    requirements: [CART-001, ORD-001]
+    title: "Cart and checkout pages work without JavaScript, with CSRF and double-submit safety"
+    protected: false
+  - id: M12-T001
+    module: M12
+    requirements: [ORD-004]
+    title: "Buyer sees only own orders; others get a generic 404"
+    protected: true
+  - id: M12-T002
+    module: M12
+    requirements: [ORD-005]
+    title: "Shop members see only their own shop's orders"
+    protected: true
+  - id: M12-T003
+    module: M12
+    requirements: [BR-014, ORD-LC-004]
+    title: "Payment and fulfilment states cannot be set by customers or by the app role directly"
+    protected: true
+  - id: M12-T004
+    module: M12
+    requirements: [ORD-001, ORD-006, ORD-LC-005]
+    title: "Verified payment confirms the order and consumes reserved stock exactly once"
+    protected: true
+  - id: M12-T005
+    module: M12
+    requirements: [ORD-LC-002, DEL-001]
+    title: "Fulfilment transitions are permissioned, ordered and audited, with courier assignment"
+    protected: true
+  - id: M12-T006
+    module: M12
+    requirements: [DEL-002, V13-TRUST-002]
+    title: "Delivery PIN is order-bound, single-use, hashed and attempt-limited"
+    protected: true
+  - id: M12-T007
+    module: M12
+    requirements: [ORD-LC-001, ORD-LC-006]
+    title: "Cancellation rules by state, with stock release and refund flag"
+    protected: true
+  - id: M12-T008
+    module: M12
+    requirements: [ORD-LC-006, ORD-LC-005]
+    title: "Unpaid orders expire and release stock; late payment is flagged for refund"
+    protected: true
+  - id: M12-T009
+    module: M12
+    requirements: [ORD-002, ORD-003]
+    title: "Orders keep delivery-address and item snapshots that the app cannot rewrite"
+    protected: true
+  - id: M12-T010
+    module: M12
+    requirements: [BR-017]
+    title: "Review eligibility only for own delivered order items"
+    protected: true
+  - id: M12-T011
+    module: M12
+    requirements: [ORD-001, ORD-LC-002, DEL-001]
+    title: "Buyer and seller order pages drive the full lifecycle without JavaScript"
+    protected: false
+  - id: M12-T012
+    module: M12
+    requirements: [CAP-DEL-ADV-001, DEL-002, V13-TRUST-002]
+    title: "Payment simulator is absent outside dev/test; delivery design decisions are recorded"
+    protected: false

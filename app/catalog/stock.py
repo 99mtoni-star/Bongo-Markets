@@ -126,3 +126,10 @@ def expire_all(db: Session, *, now: datetime | None = None) -> int:
     for pid in sorted(ids):  # consistent lock order avoids deadlocks
         total += _expire_for_product(db, _locked_product(db, pid), now)
     return total
+
+
+def restock(db: Session, product_id: int, quantity: int) -> None:
+    """Return committed (sold) units to stock when a paid order is cancelled before shipping (ORD-LC-006)."""
+    if quantity <= 0:
+        raise StockError("Idadi lazima iwe zaidi ya sifuri.", "invalid_quantity")
+    _locked_product(db, product_id).stock += quantity
