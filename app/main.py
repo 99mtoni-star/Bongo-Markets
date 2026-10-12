@@ -17,6 +17,8 @@ from app.auth import api as auth_api
 from app.auth import security_api, security_web
 from app.auth import web as auth_web
 from app.auth.notify import build_notifier
+from app.authz import api as authz_api
+from app.authz import web as authz_web
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, request_id_var
 from app.db.session import session_factory
@@ -124,6 +126,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(system.router, prefix="/api/v1")
     app.include_router(auth_api.router, prefix="/api/v1")
     app.include_router(security_api.router, prefix="/api/v1")
+    app.include_router(authz_api.router, prefix="/api/v1")
+    app.include_router(authz_web.router)
     app.include_router(security_web.router)
     app.include_router(auth_web.router)
     app.include_router(pages.router)

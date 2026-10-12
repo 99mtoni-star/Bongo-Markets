@@ -30,6 +30,7 @@ class UserStatus(StrEnum):
     PENDING_VERIFICATION = "PENDING_VERIFICATION"
     ACTIVE = "ACTIVE"
     SUSPENDED = "SUSPENDED"  # set by administrators (M19)
+    CLOSED = "CLOSED"        # closed by the user; personal data anonymized after retention (SEC-COM-004)
 
 
 class CodePurpose(StrEnum):
@@ -44,7 +45,7 @@ class User(Base):
 
     __tablename__ = "users"
     __table_args__ = (
-        CheckConstraint("status IN ('PENDING_VERIFICATION','ACTIVE','SUSPENDED')", name="status_valid"),
+        CheckConstraint("status IN ('PENDING_VERIFICATION','ACTIVE','SUSPENDED','CLOSED')", name="status_valid"),
         CheckConstraint("phone_e164 ~ '^\\+[1-9][0-9]{7,14}$'", name="phone_e164_format"),
         CheckConstraint("email IS NULL OR email = lower(btrim(email))", name="email_normalized"),
         CheckConstraint("failed_login_count >= 0", name="failed_login_nonnegative"),
@@ -75,6 +76,10 @@ class User(Base):
     totp_secret_enc: Mapped[str | None] = mapped_column(Text)
     totp_enabled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     totp_last_step: Mapped[int | None] = mapped_column(BigInteger)
+    # M05: bumped whenever this user's effective permissions change (AUTH-015/017).
+    authz_version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1", default=1)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    anonymized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(),
                                                  onupdate=func.now(), nullable=False)

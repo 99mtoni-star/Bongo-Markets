@@ -71,6 +71,8 @@ class Settings(BaseSettings):
     reset_ttl_minutes: int = 15
     otp_max_attempts: int = 5
     default_phone_region: str = "TZ"         # mobile-number-first identity (ID-002)
+    dormant_account_days: int = 180          # ID-009: SMS-only reset refused after long inactivity
+    closed_account_retention_days: int = 365  # SEC-COM-004
     notifier: str = "dev"                    # "dev" keeps SMS/email in memory; production needs a provider
 
     @property

@@ -463,6 +463,16 @@ class AuthService:
                 .scalar_one_or_none()
         if user is None or user.status != UserStatus.ACTIVE:
             return str(uuid.uuid4())  # same shape as a real id (ID-006)
+        if kind == "phone" and self._dormant(user):
+            # ID-009: mobile numbers are recycled by carriers. After long inactivity an SMS alone must not
+            # hand the account to whoever holds the number now: use the verified email, or route to support.
+            if user.email and user.email_verified_at:
+                kind, ident = "email", user.email
+            else:
+                audit.record(self.db, action="auth.reset_blocked_dormant", category=AuditCategory.SECURITY,
+                             entity_type="user", entity_id=user.id)
+                self.db.commit()
+                return str(uuid.uuid4())
         target = user.phone_e164 if kind == "phone" else ident
         row, code = self._issue_code(user, CodePurpose.RESET_PASSWORD, target, self.settings.reset_ttl_minutes)
         body = (f"Bongo Markets: Namba ya kurejesha nenosiri ni {code}. Inaisha baada ya dakika "
@@ -472,6 +482,10 @@ class AuthService:
                      entity_type="user", entity_id=user.id, details={"channel": kind})
         self.db.commit()
         return str(row.public_id)
+
+    def _dormant(self, user: User) -> bool:
+        last = user.last_login_at or user.phone_verified_at or user.created_at
+        return last is not None and last < _now() - timedelta(days=self.settings.dormant_account_days)
 
     def reset_password(self, reset_id: str, code: str, new_password: str, mfa_code: str | None = None) -> None:
         self._limit(rl.OTP_VERIFY_PER_IP, self.ip_key)

@@ -12,6 +12,7 @@ import pyotp
 import pytest
 from psycopg import errors
 
+from tests.conftest import TOTP_CLOCK
 from tests.test_m03_auth import STRONG, e164, last_code, new_phone, register, register_and_verify, user_row
 
 
@@ -21,36 +22,6 @@ def _reset_rate_limits(owner_conn):
     yield
 
 
-class FakeClock:
-    """Server-side TOTP clock under test control, so tests never wait for real 30 s windows."""
-
-    def __init__(self):
-        self.now = time.time()
-
-    def time(self) -> float:
-        return self.now
-
-
-@pytest.fixture(autouse=True)
-def clock(monkeypatch):
-    import app.auth.mfa as mfa
-
-    fake = FakeClock()
-    monkeypatch.setattr(mfa, "time", fake)
-    return fake
-
-
-CLOCK: FakeClock | None = None
-
-
-@pytest.fixture(autouse=True)
-def _bind_clock(clock):
-    global CLOCK
-    CLOCK = clock
-    yield
-    CLOCK = None
-
-
 class Totp:
     """Independent TOTP oracle (pyotp). Each code is from a fresh 30 s window, like a phone over time."""
 
@@ -58,8 +29,9 @@ class Totp:
         self.otp = pyotp.TOTP(secret)
 
     def code(self) -> str:
-        CLOCK.now += 30  # move to the next time step; the server shares this clock
-        return self.otp.at(CLOCK.now)
+        clock = TOTP_CLOCK["clock"]
+        clock.now += 30  # move to the next time step; the server shares this clock
+        return self.otp.at(clock.now)
 
 
 def enable_mfa(client) -> tuple[Totp, list[str]]:

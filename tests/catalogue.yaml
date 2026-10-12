@@ -408,3 +408,88 @@ tests:
     requirements: [SEC-MFA-002, SEC-009]
     title: Unknown step-up actions are rejected and step-up is rate limited
     protected: true
+  - id: M05-T001
+    module: M05
+    requirements: [AUTH-001, SEC-003]
+    title: Authorization is deny-by-default for every permission
+    protected: true
+  - id: M05-T002
+    module: M05
+    requirements: [AUTH-002]
+    title: Platform and shop permission scopes are separate
+    protected: true
+  - id: M05-T003
+    module: M05
+    requirements: [AUTH-003, SEC-INV-002]
+    title: Every admin route rejects anonymous and plain users with generic errors
+    protected: true
+  - id: M05-T004
+    module: M05
+    requirements: [AUTH-014, AUTH-016, AUTH-012]
+    title: Role-permission changes use optimistic policyVersion concurrency
+    protected: true
+  - id: M05-T005
+    module: M05
+    requirements: [AUTH-015, AUTH-017]
+    title: Permission changes fan out to holders' authzVersion, invalidate cache and are audited
+    protected: true
+  - id: M05-T006
+    module: M05
+    requirements: [V13-SEC-003]
+    title: High-risk permissions bypass the cache and errors fail closed
+    protected: true
+  - id: M05-T007
+    module: M05
+    requirements: [ACT-009, AUTH-006, ACT-003]
+    title: Segregation of duties blocks conflicting roles; compatible roles combine
+    protected: true
+  - id: M05-T008
+    module: M05
+    requirements: [AUTH-010, AUTH-011]
+    title: Concurrent duplicate role grants leave exactly one active assignment
+    protected: true
+  - id: M05-T009
+    module: M05
+    requirements: [ACT-001, ACT-004, V13-REQ-007, ACT-002, ACT-006]
+    title: Capabilities are separate from permissions and never imply privilege
+    protected: true
+  - id: M05-T010
+    module: M05
+    requirements: [ACT-007]
+    title: Capability status changes are authorized and audited
+    protected: true
+  - id: M05-T011
+    module: M05
+    requirements: [AUTH-013, SEC-004]
+    title: Privileged mutations require explicit CSRF token and allowed Origin
+    protected: true
+  - id: M05-T012
+    module: M05
+    requirements: [SEC-AUD-004]
+    title: Audit export needs permission and step-up; purge is DBA-only and retention-bound
+    protected: true
+  - id: M05-T013
+    module: M05
+    requirements: [SEC-COM-004]
+    title: Closed accounts are anonymized after retention unless under legal hold
+    protected: true
+  - id: M05-T014
+    module: M05
+    requirements: [ID-009]
+    title: Dormant accounts are never reset through a possibly recycled phone number
+    protected: true
+  - id: M05-T015
+    module: M05
+    requirements: [AUTH-012]
+    title: RBAC contract is stable and Super Admin cannot be locked out
+    protected: true
+  - id: M05-T016
+    module: M05
+    requirements: [ACT-010]
+    title: Published permission codes remain backward compatible
+    protected: true
+  - id: M05-T017
+    module: M05
+    requirements: [SEC-INV-002, AUTH-004]
+    title: Unknown targets give a generic 404
+    protected: true

@@ -54,15 +54,21 @@ class StepUpAction(StrEnum):
     PHONE_CHANGE = "PHONE_CHANGE"
     EMAIL_CHANGE = "EMAIL_CHANGE"
     INCIDENT_RESPONSE = "INCIDENT_RESPONSE"
+    RBAC_CHANGE = "RBAC_CHANGE"                      # M05
+    AUDIT_EXPORT = "AUDIT_EXPORT"                    # M05
+    LEGAL_HOLD = "LEGAL_HOLD"                        # M05
+    ACCOUNT_CLOSE = "ACCOUNT_CLOSE"                  # M05
+    SETTINGS_CHANGE = "SETTINGS_CHANGE"              # M08 (stock reservation time, ...)
 
 
 # Actions that always need the TOTP factor, never password-only (ID-007, SEC-MFA-004).
 STRONG_FACTOR_ACTIONS = {StepUpAction.ROLE_ASSIGN, StepUpAction.INCIDENT_RESPONSE,
                          StepUpAction.PAYMENT_CONFIG_CHANGE, StepUpAction.COMMISSION_CHANGE,
-                         StepUpAction.REFUND_APPROVE, StepUpAction.OWNERSHIP_TRANSFER}
+                         StepUpAction.REFUND_APPROVE, StepUpAction.OWNERSHIP_TRANSFER,
+                         StepUpAction.RBAC_CHANGE, StepUpAction.AUDIT_EXPORT, StepUpAction.LEGAL_HOLD,
+                         StepUpAction.SETTINGS_CHANGE}
 
-ROLE_GRANTORS = {"SUPER_ADMIN"}
-INCIDENT_RESPONDERS = {"SUPER_ADMIN", "PLATFORM_ADMIN"}
+ROLE_GRANTORS = {"SUPER_ADMIN"}  # used only to stop the last super admin removing themselves
 
 
 def _now() -> datetime:
@@ -81,15 +87,11 @@ class SecurityService(AuthService):
             .where(UserPlatformRole.user_id == user_id, UserPlatformRole.revoked_at.is_(None),
                    PlatformRole.privileged.is_(True)).limit(1)).first())
 
-    def require_privileged_session(self, ctx: SessionContext, allowed_roles: set[str]) -> set[str]:
-        """Privileged APIs need a role AND a session that used the TOTP factor (aal2)."""
-        roles = self.active_roles(ctx.user.id)
-        if not roles & allowed_roles:
-            raise AuthError("Huna ruhusa ya kufanya kitendo hiki.", status=403, code="forbidden")
-        if ctx.session.aal < 2:
-            raise AuthError("Ingia kwa MFA (programu ya uthibitishaji) ili kutumia sehemu hii.", status=403,
-                            code="mfa_required")
-        return roles
+    def require_permission(self, ctx: SessionContext, permission: str) -> None:
+        """Data-driven, deny-by-default check (M05). Platform permissions also need an aal2 session."""
+        from app.authz.engine import Authorizer
+
+        Authorizer(self.db).require(ctx, permission)
 
     # ------------------------------------------------------------------ step-up (SEC-MFA-002)
     def step_up(self, ctx: SessionContext, action: str, password: str, mfa_code: str | None) -> str:
@@ -294,7 +296,7 @@ class SecurityService(AuthService):
         return user
 
     def grant_role(self, ctx: SessionContext, target_public_id: str, role_code: str, step_up_token: str | None):
-        self.require_privileged_session(ctx, ROLE_GRANTORS)
+        self.require_permission(ctx, "platform.roles.assign")
         self.consume_step_up(ctx, StepUpAction.ROLE_ASSIGN, step_up_token)
         role = self.db.get(PlatformRole, role_code)
         if role is None:
@@ -307,16 +309,32 @@ class SecurityService(AuthService):
         if role.privileged and target.totp_enabled_at is None:
             raise AuthError("Mtumiaji lazima awashe MFA ya programu kabla ya kupewa jukumu hili.", status=409,
                             code="target_mfa_required")
-        if role_code in self.active_roles(target.id):
+        current = self.active_roles(target.id)
+        if role_code in current:
             raise AuthError("Tayari ana jukumu hili.", status=409, code="exists")
-        self.db.add(UserPlatformRole(user_id=target.id, role_code=role_code, granted_by=ctx.user.id))
+        from app.authz.models import RoleConflict
+
+        for a, b, why in self.db.execute(select(RoleConflict.role_a, RoleConflict.role_b, RoleConflict.reason)):
+            if (role_code == a and b in current) or (role_code == b and a in current):
+                raise AuthError(f"Mgongano wa majukumu (segregation of duties): {why}.", status=409,
+                                code="role_conflict")
+        from sqlalchemy.exc import IntegrityError
+
+        try:
+            with self.db.begin_nested():
+                self.db.add(UserPlatformRole(user_id=target.id, role_code=role_code, granted_by=ctx.user.id))
+        except IntegrityError:  # a concurrent identical grant won the race (AUTH-010/011)
+            raise AuthError("Tayari ana jukumu hili.", status=409, code="exists") from None
+        from app.authz.engine import Authorizer
+
+        Authorizer(self.db).bump_user(target.id)
         self.revoke_all_sessions(target.id, "role_granted")  # new privileges start with a fresh MFA login
         audit.record(self.db, action="role.granted", category=AuditCategory.SECURITY, actor_user_id=ctx.user.id,
                      actor_type="user", entity_type="user", entity_id=target.id, details={"role": role_code})
         self.db.commit()
 
     def revoke_role(self, ctx: SessionContext, target_public_id: str, role_code: str, step_up_token: str | None):
-        self.require_privileged_session(ctx, ROLE_GRANTORS)
+        self.require_permission(ctx, "platform.roles.assign")
         self.consume_step_up(ctx, StepUpAction.ROLE_ASSIGN, step_up_token)
         target = self._target(target_public_id)
         grant = self.db.execute(select(UserPlatformRole).where(
@@ -327,6 +345,9 @@ class SecurityService(AuthService):
         if target.id == ctx.user.id and role_code in ROLE_GRANTORS:
             raise AuthError("Huwezi kujiondolea jukumu la juu kabisa mwenyewe.", status=403, code="self_revoke")
         grant.revoked_at, grant.revoked_by = _now(), ctx.user.id
+        from app.authz.engine import Authorizer
+
+        Authorizer(self.db).bump_user(target.id)
         self.revoke_all_sessions(target.id, "role_revoked")  # AUTH-009: takes effect immediately
         audit.record(self.db, action="role.revoked", category=AuditCategory.SECURITY, actor_user_id=ctx.user.id,
                      actor_type="user", entity_type="user", entity_id=target.id, details={"role": role_code})
@@ -334,12 +355,13 @@ class SecurityService(AuthService):
 
     # ------------------------------------------------------------------ incident response (SEC-IR-003)
     def suspend_user(self, ctx: SessionContext, target_public_id: str, reason: str, step_up_token: str | None):
-        self.require_privileged_session(ctx, INCIDENT_RESPONDERS)
+        self.require_permission(ctx, "platform.incident.respond")
         self.consume_step_up(ctx, StepUpAction.INCIDENT_RESPONSE, step_up_token)
         target = self._target(target_public_id)
         if target.id == ctx.user.id:
             raise AuthError("Huwezi kujisimamisha mwenyewe.", status=403, code="self_suspend")
         target.status = UserStatus.SUSPENDED
+        target.authz_version += 1
         self.revoke_all_sessions(target.id, "suspended")
         audit.record(self.db, action="incident.user_suspended", category=AuditCategory.SECURITY,
                      actor_user_id=ctx.user.id, actor_type="user", entity_type="user", entity_id=target.id,
@@ -347,7 +369,7 @@ class SecurityService(AuthService):
         self.db.commit()
 
     def reinstate_user(self, ctx: SessionContext, target_public_id: str, reason: str, step_up_token: str | None):
-        self.require_privileged_session(ctx, INCIDENT_RESPONDERS)
+        self.require_permission(ctx, "platform.incident.respond")
         self.consume_step_up(ctx, StepUpAction.INCIDENT_RESPONSE, step_up_token)
         target = self._target(target_public_id)
         if target.status == UserStatus.SUSPENDED:
@@ -358,7 +380,7 @@ class SecurityService(AuthService):
         self.db.commit()
 
     def force_sign_out(self, ctx: SessionContext, target_public_id: str, step_up_token: str | None) -> int:
-        self.require_privileged_session(ctx, INCIDENT_RESPONDERS)
+        self.require_permission(ctx, "platform.incident.respond")
         self.consume_step_up(ctx, StepUpAction.INCIDENT_RESPONSE, step_up_token)
         target = self._target(target_public_id)
         n = self.revoke_all_sessions(target.id, "incident_response")
@@ -369,7 +391,7 @@ class SecurityService(AuthService):
 
     def set_payments_suspended(self, ctx: SessionContext, suspended: bool, reason: str,
                                step_up_token: str | None) -> None:
-        self.require_privileged_session(ctx, INCIDENT_RESPONDERS)
+        self.require_permission(ctx, "platform.incident.respond")
         self.consume_step_up(ctx, StepUpAction.INCIDENT_RESPONSE, step_up_token)
         flag = self.db.get(SystemFlag, PAYMENTS_SUSPENDED)
         if flag is None:

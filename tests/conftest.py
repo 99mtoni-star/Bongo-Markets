@@ -119,16 +119,35 @@ def pg():
                            db=TEST_DB, roles=TEST_ROLES)
 
 
-@pytest.fixture
-def db_client(pg, make_settings):
+TEST_CSRF = "test-csrf-token-0123456789abcdef"
+
+
+def _browser_like_client(app, base_url="https://testserver"):
+    """Behaves like a browser using our pages: always sends Origin, keeps the CSRF cookie and
+    echoes it in X-CSRF-Token (what our future front-end does for privileged JSON calls)."""
     from fastapi.testclient import TestClient
 
+    class BrowserClient(TestClient):
+        def request(self, method, url, **kwargs):
+            names = [c.name for c in self.cookies.jar]
+            if "bm_csrf" not in names:
+                self.cookies.set("bm_csrf", TEST_CSRF)
+            headers = dict(kwargs.pop("headers", None) or {})
+            headers.setdefault("Origin", base_url)
+            headers.setdefault("X-CSRF-Token", TEST_CSRF)
+            return super().request(method, url, headers=headers, **kwargs)
+
+    return BrowserClient(app, raise_server_exceptions=False, base_url=base_url)
+
+
+@pytest.fixture
+def db_client(pg, make_settings):
     from app.main import create_app
 
     app = create_app(make_settings(BM_ENVIRONMENT="test", BM_DATABASE_URL=pg.app_url,
                                    BM_SECRET_KEY="test-secret-key-0123456789-abcdefghijkl"))
     # HTTPS so Secure cookies behave exactly as in a browser.
-    return TestClient(app, raise_server_exceptions=False, base_url="https://testserver")
+    return _browser_like_client(app)
 
 
 @pytest.fixture
@@ -145,3 +164,30 @@ def owner_conn(pg):
 
     with psycopg.connect(pg.owner_url.replace("+psycopg", ""), autocommit=True) as conn:
         yield conn
+
+
+# ---------------------------------------------------------------- controllable TOTP clock (M04+)
+class FakeClock:
+    """Server-side TOTP clock under test control, so tests never wait for real 30 s windows."""
+
+    def __init__(self):
+        import time
+
+        self.now = time.time()
+
+    def time(self) -> float:
+        return self.now
+
+
+TOTP_CLOCK: dict = {"clock": None}
+
+
+@pytest.fixture(autouse=True)
+def totp_clock(monkeypatch):
+    import app.auth.mfa as mfa
+
+    fake = FakeClock()
+    monkeypatch.setattr(mfa, "time", fake)
+    TOTP_CLOCK["clock"] = fake
+    yield fake
+    TOTP_CLOCK["clock"] = None

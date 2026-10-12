@@ -14,6 +14,12 @@ from app.auth.service import AuthError, SessionContext
 from app.db.session import get_db, get_engine
 
 router = APIRouter(tags=["security"])
+
+
+def _privileged(request: Request) -> None:
+    from app.authz.api import privileged_mutation  # AUTH-013 (M05)
+
+    privileged_mutation(request)
 StepUpHeader = Header(None, alias="X-Step-Up-Token", max_length=200)
 
 
@@ -124,14 +130,14 @@ class RoleIn(StrictModel):
     role: str = Field(..., max_length=32)
 
 
-@router.post("/admin/users/{public_id}/roles", status_code=201)
+@router.post("/admin/users/{public_id}/roles", status_code=201, dependencies=[Depends(_privileged)])
 def grant_role(public_id: str, body: RoleIn, ctx: SessionContext = Depends(require_session),
                svc: SecurityService = Depends(get_security_service), step_up_token: str | None = StepUpHeader):
     return _run(lambda: svc.grant_role(ctx, public_id[:40], body.role, step_up_token)
                 or {"message": "Jukumu limetolewa."}, ok_status=201)
 
 
-@router.delete("/admin/users/{public_id}/roles/{role}")
+@router.delete("/admin/users/{public_id}/roles/{role}", dependencies=[Depends(_privileged)])
 def revoke_role(public_id: str, role: str, ctx: SessionContext = Depends(require_session),
                 svc: SecurityService = Depends(get_security_service), step_up_token: str | None = StepUpHeader):
     return _run(lambda: svc.revoke_role(ctx, public_id[:40], role[:32], step_up_token)
@@ -148,27 +154,27 @@ class PaymentsIn(StrictModel):
     reason: str = Field(..., min_length=3, max_length=500)
 
 
-@router.post("/admin/incident/users/{public_id}/suspend")
+@router.post("/admin/incident/users/{public_id}/suspend", dependencies=[Depends(_privileged)])
 def suspend(public_id: str, body: ReasonIn, ctx: SessionContext = Depends(require_session),
             svc: SecurityService = Depends(get_security_service), step_up_token: str | None = StepUpHeader):
     return _run(lambda: svc.suspend_user(ctx, public_id[:40], body.reason, step_up_token)
                 or {"message": "Akaunti imesimamishwa na vifaa vyote vimetolewa."})
 
 
-@router.post("/admin/incident/users/{public_id}/reinstate")
+@router.post("/admin/incident/users/{public_id}/reinstate", dependencies=[Depends(_privileged)])
 def reinstate(public_id: str, body: ReasonIn, ctx: SessionContext = Depends(require_session),
               svc: SecurityService = Depends(get_security_service), step_up_token: str | None = StepUpHeader):
     return _run(lambda: svc.reinstate_user(ctx, public_id[:40], body.reason, step_up_token)
                 or {"message": "Akaunti imerejeshwa."})
 
 
-@router.post("/admin/incident/users/{public_id}/sign-out")
+@router.post("/admin/incident/users/{public_id}/sign-out", dependencies=[Depends(_privileged)])
 def sign_out(public_id: str, ctx: SessionContext = Depends(require_session),
              svc: SecurityService = Depends(get_security_service), step_up_token: str | None = StepUpHeader):
     return _run(lambda: {"revoked": svc.force_sign_out(ctx, public_id[:40], step_up_token)})
 
 
-@router.post("/admin/incident/payments")
+@router.post("/admin/incident/payments", dependencies=[Depends(_privileged)])
 def payments(body: PaymentsIn, ctx: SessionContext = Depends(require_session),
              svc: SecurityService = Depends(get_security_service), step_up_token: str | None = StepUpHeader):
     return _run(lambda: svc.set_payments_suspended(ctx, body.suspended, body.reason, step_up_token)
