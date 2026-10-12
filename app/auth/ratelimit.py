@@ -31,6 +31,11 @@ OTP_VERIFY_PER_IP = Limit("otp-ip", 30, 900)
 RESEND_PER_ID = Limit("resend-id", 3, 900)
 RESET_PER_IP = Limit("reset-ip", 10, 3600)
 RESET_PER_ID = Limit("reset-id", 3, 3600)
+# SMS pumping / toll fraud (ID-011)
+SMS_PER_DESTINATION = Limit("sms-dest", 6, 3600)
+SMS_PER_IP = Limit("sms-ip", 20, 3600)
+SMS_GLOBAL = Limit("sms-global", 2000, 3600)
+STEP_UP_PER_USER = Limit("step-up-user", 10, 900)
 
 
 class RateLimited(Exception):

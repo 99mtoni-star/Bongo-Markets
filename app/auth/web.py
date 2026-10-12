@@ -163,12 +163,43 @@ def login_submit(request: Request, csrf: str = Form(""), identifier: str = Form(
                  svc: AuthService = Depends(get_auth_service)):
     check_csrf(request, csrf)
     try:
-        token = svc.login(identifier[:254], password[:1024])
+        result = svc.login(identifier[:254], password[:1024])
     except AuthError as exc:
         if exc.code == "verification_required" and exc.verification_id:
             return _redirect(f"/thibitisha?v={quote(exc.verification_id)}")
         return _html(request, "Ingia", _login_form(request, exc.message, identifier=identifier[:254]),
                      status=exc.status)
+    if result.challenge_id:
+        return _redirect(f"/ingia/mfa?c={quote(result.challenge_id)}")
+    resp = _redirect("/akaunti")
+    set_session_cookie(resp, request, result.token)
+    return resp
+
+
+def _mfa_form(request: Request, cid: str, error: str | None = None) -> str:
+    return f"""<div class="card"><h1>Uthibitisho wa hatua mbili</h1>
+<p class="sub">Fungua programu yako ya uthibitishaji (mf. Google Authenticator) na uandike namba ya tarakimu 6.
+Kama huna simu yako, tumia moja ya namba zako za dharura.</p>{alert(error)}
+<form method="post" action="/ingia/mfa">{_csrf_input(request)}
+<input type="hidden" name="c" value="{escape(cid)}">
+{field("code", "Namba ya programu au ya dharura", extra='class="code" autocomplete="one-time-code" maxlength="11" required')}
+<button class="primary" type="submit">Thibitisha</button></form>
+<div class="links"><a href="/ingia">Anza upya</a></div></div>"""
+
+
+@router.get("/ingia/mfa", response_class=HTMLResponse)
+def mfa_page(request: Request, c: str = ""):
+    return _html(request, "MFA", _mfa_form(request, c[:64]))
+
+
+@router.post("/ingia/mfa")
+def mfa_submit(request: Request, csrf: str = Form(""), c: str = Form(""), code: str = Form(""),
+               svc: AuthService = Depends(get_auth_service)):
+    check_csrf(request, csrf)
+    try:
+        token = svc.complete_mfa_login(c[:64], code[:16])
+    except AuthError as exc:
+        return _html(request, "MFA", _mfa_form(request, c[:64], exc.message), status=exc.status)
     resp = _redirect("/akaunti")
     set_session_cookie(resp, request, token)
     return resp
@@ -193,7 +224,9 @@ def _account_body(request: Request, ctx: SessionContext, notice: str = "", error
 <dl><dt>Jina</dt><dd>{escape(u.full_name)}</dd>
 <dt>Simu</dt><dd>{escape(mask_phone(u.phone_e164))} ✓</dd>
 <dt>Barua pepe</dt><dd>{email}</dd>
-<dt>Hali</dt><dd>Akaunti hai</dd></dl></div>
+<dt>Hali</dt><dd>Akaunti hai</dd>
+<dt>MFA</dt><dd>{"Imewashwa ✓" if u.totp_enabled_at else "Haijawashwa"}</dd></dl>
+<div class="links"><a href="/akaunti/usalama">Usalama wa akaunti: MFA, vifaa, namba ya simu →</a></div></div>
 <div class="card"><h1 style="font-size:20px">Badilisha nenosiri</h1>
 <p class="sub">Ukibadilisha, vifaa vingine vyote vitatolewa kwenye akaunti.</p>{alert(error)}
 <form method="post" action="/akaunti/nenosiri">{_csrf_input(request)}
@@ -260,6 +293,8 @@ def _reset_form(request: Request, rid: str, error: str | None = None) -> str:
 {field("code", "Namba uliyotumiwa", extra='class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required')}
 {field("new_password", "Nenosiri jipya", type_="password", hint="angalau herufi 8",
        extra='autocomplete="new-password" required')}
+{field("mfa_code", "Namba ya programu ya uthibitishaji", hint="(kama umewasha MFA)",
+       extra='autocomplete="one-time-code" maxlength="11"')}
 <button class="primary" type="submit">Hifadhi nenosiri</button></form></div>"""
 
 
@@ -270,10 +305,11 @@ def reset_page(request: Request, r: str = ""):
 
 @router.post("/weka-nenosiri-upya")
 def reset_submit(request: Request, csrf: str = Form(""), r: str = Form(""), code: str = Form(""),
-                 new_password: str = Form(""), svc: AuthService = Depends(get_auth_service)):
+                 new_password: str = Form(""), mfa_code: str = Form(""),
+                 svc: AuthService = Depends(get_auth_service)):
     check_csrf(request, csrf)
     try:
-        svc.reset_password(r[:64], code[:12], new_password[:1024])
+        svc.reset_password(r[:64], code[:12], new_password[:1024], mfa_code[:16] or None)
     except AuthError as exc:
         return _html(request, "Nenosiri jipya", _reset_form(request, r[:64], exc.message), status=exc.status)
     return _redirect("/ingia?ujumbe=nenosiri-limerejeshwa")

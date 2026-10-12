@@ -31,7 +31,7 @@ MODULES: tuple[Module, ...] = (
     Module("M01", "Project Setup na Configuration", "Msingi wa mradi na mipangilio", 8, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M02", "Database Schema na Migrations", "Muundo wa database", 13, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M03", "Registration na Login", "Usajili na kuingia", 21, ModuleStatus.DEVELOPER_COMPLETE),
-    Module("M04", "MFA, Sessions na Password Recovery", "Ulinzi wa ziada na sessions", 18, ModuleStatus.NOT_STARTED),
+    Module("M04", "MFA, Sessions na Password Recovery", "Ulinzi wa ziada na sessions", 18, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M05", "Users, Roles na Permissions", "Watumiaji na ruhusa", 32, ModuleStatus.NOT_STARTED),
     Module("M06", "Shared UI, Header na Navigation", "Muonekano wa pamoja", 11, ModuleStatus.NOT_STARTED),
     Module("M07", "Shops, Ownership na Staff", "Maduka na wamiliki", 21, ModuleStatus.NOT_STARTED),

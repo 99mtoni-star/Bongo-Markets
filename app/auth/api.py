@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Header, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.auth.deps import (
     clear_session_cookie,
@@ -17,48 +17,55 @@ from app.auth.service import REGISTER_ACCEPTED, RESET_ACCEPTED, AuthError, AuthS
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
+class StrictModel(BaseModel):
+    """Unknown fields are rejected, so clients cannot smuggle e.g. a "role" (AUTH-008)."""
+
+    model_config = ConfigDict(extra="forbid")
+
 # Schema ceilings are far above the policy maximum, so over-long passwords get an explicit
 # policy error instead of being silently truncated (SEC-PWD-004).
 Pw = Field(..., min_length=1, max_length=1024)
 
 
-class RegisterIn(BaseModel):
+class RegisterIn(StrictModel):
     full_name: str = Field(..., max_length=200)
     phone: str = Field(..., max_length=32)
     password: str = Pw
     email: str | None = Field(None, max_length=254)
 
 
-class VerifyIn(BaseModel):
+class VerifyIn(StrictModel):
     verification_id: str = Field(..., max_length=64)
     code: str = Field(..., max_length=12)
 
 
-class ResendIn(BaseModel):
+class ResendIn(StrictModel):
     verification_id: str = Field(..., max_length=64)
 
 
-class LoginIn(BaseModel):
+class LoginIn(StrictModel):
     identifier: str = Field(..., max_length=254)
     password: str = Pw
 
 
-class ChangePasswordIn(BaseModel):
+class ChangePasswordIn(StrictModel):
     current_password: str = Pw
     new_password: str = Pw
 
 
-class ForgotIn(BaseModel):
+class ForgotIn(StrictModel):
     identifier: str = Field(..., max_length=254)
 
 
-class ResetIn(BaseModel):
+class ResetIn(StrictModel):
     reset_id: str = Field(..., max_length=64)
     code: str = Field(..., max_length=12)
     new_password: str = Pw
+    mfa_code: str | None = Field(None, max_length=16)  # required when the account has MFA (ID-008)
 
 
-class EmailIn(BaseModel):
+class EmailIn(StrictModel):
     email: str = Field(..., max_length=254)
 
 
@@ -104,10 +111,30 @@ def resend(body: ResendIn, svc: AuthService = Depends(get_auth_service)):
 @router.post("/login")
 def login(body: LoginIn, request: Request, svc: AuthService = Depends(get_auth_service)):
     try:
-        token = svc.login(body.identifier, body.password)
+        result = svc.login(body.identifier, body.password)
     except AuthError as exc:
         return error_response(exc)
-    response = JSONResponse({"message": "Umeingia."})
+    if result.challenge_id:
+        # Password accepted; the authenticator code is still required. No cookie yet.
+        return {"mfa_required": True, "challenge_id": result.challenge_id,
+                "message": "Weka namba kutoka kwenye programu yako ya uthibitishaji."}
+    response = JSONResponse({"message": "Umeingia.", "mfa_required": False})
+    set_session_cookie(response, request, result.token)
+    return response
+
+
+class MfaLoginIn(StrictModel):
+    challenge_id: str = Field(..., max_length=64)
+    code: str = Field(..., max_length=16)
+
+
+@router.post("/login/mfa")
+def login_mfa(body: MfaLoginIn, request: Request, svc: AuthService = Depends(get_auth_service)):
+    try:
+        token = svc.complete_mfa_login(body.challenge_id, body.code)
+    except AuthError as exc:
+        return error_response(exc)
+    response = JSONResponse({"message": "Umeingia kwa MFA."})
     set_session_cookie(response, request, token)
     return response
 
@@ -159,17 +186,21 @@ def forgot(body: ForgotIn, svc: AuthService = Depends(get_auth_service)):
 @router.post("/password/reset")
 def reset(body: ResetIn, svc: AuthService = Depends(get_auth_service)):
     try:
-        svc.reset_password(body.reset_id, body.code, body.new_password)
+        svc.reset_password(body.reset_id, body.code, body.new_password, body.mfa_code)
     except AuthError as exc:
         return error_response(exc)
     return {"message": "Nenosiri limerejeshwa. Sasa unaweza kuingia."}
 
 
 @router.post("/email/verify-request", status_code=202)
-def email_request(body: EmailIn, ctx: SessionContext = Depends(require_session),
-                  svc: AuthService = Depends(get_auth_service)):
+def email_request(body: EmailIn, request: Request, ctx: SessionContext = Depends(require_session),
+                  svc: AuthService = Depends(get_auth_service),
+                  step_up_token: str | None = Header(None, alias="X-Step-Up-Token", max_length=200)):
+    from app.auth.security import SecurityService
+
+    sec = SecurityService(svc.db, svc.settings, svc.engine, svc.notifier, svc.client)
     try:
-        vid = svc.request_email_verification(ctx, body.email)
+        vid = sec.request_email_change(ctx, body.email, step_up_token)
     except AuthError as exc:
         return error_response(exc)
     return {"message": "Tumetuma namba ya uthibitisho kwa barua pepe.", "verification_id": vid}

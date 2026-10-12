@@ -18,7 +18,15 @@ from sqlalchemy.orm import Session
 
 from app.auth import ratelimit as rl
 from app.auth.identifiers import IdentifierError, classify, mask_phone, normalize_email, normalize_phone
-from app.auth.models import AuthCode, CodePurpose, User, UserSession, UserStatus
+from app.auth.models import (
+    AuthCode,
+    CodePurpose,
+    LoginChallenge,
+    RecoveryCode,
+    User,
+    UserSession,
+    UserStatus,
+)
 from app.auth.notify import Notifier
 from app.auth.passwords import PasswordPolicyError, check_policy, hash_password, needs_rehash, verify_password
 from app.auth.tokens import equal, keyed_hash, new_otp, new_session_token, sha256_hex
@@ -57,6 +65,12 @@ class SessionContext:
     session: UserSession
 
 
+@dataclass
+class LoginResult:
+    token: str | None = None          # full session issued
+    challenge_id: str | None = None   # TOTP still required (MFA login)
+
+
 def _now() -> datetime:
     return datetime.now(UTC)
 
@@ -93,12 +107,18 @@ class AuthService:
             .values(consumed_at=now)
         )
         code = new_otp()
-        row = AuthCode(user_id=user.id, purpose=purpose.value, target=target,
-                       code_hash=keyed_hash(self.settings, f"otp:{purpose.value}", code),
+        pid = uuid.uuid4()
+        row = AuthCode(public_id=pid, user_id=user.id, purpose=purpose.value, target=target,
+                       code_hash=self._code_hash(pid, user.id, purpose, target, code),
                        attempts=0, expires_at=now + timedelta(minutes=ttl_minutes))
         self.db.add(row)
         self.db.flush()
         return row, code
+
+    def _code_hash(self, pid: uuid.UUID, user_id: int, purpose: CodePurpose, target: str, code: str) -> str:
+        """Bind the code to its purpose, challenge id, user and destination (ID-004/ID-005): a
+        registration code can never be replayed for recovery, a phone change or another number."""
+        return keyed_hash(self.settings, f"otp:{purpose.value}:{pid}:{user_id}:{target}", (code or "").strip())
 
     def _consume_code(self, public_id: str, purpose: CodePurpose, code: str) -> AuthCode:
         try:
@@ -111,7 +131,7 @@ class AuthService:
         if row is None or row.consumed_at is not None or row.expires_at <= _now() \
                 or row.attempts >= self.settings.otp_max_attempts:
             raise self._fail(GENERIC_CODE_FAILED, code="invalid_code")
-        expected = keyed_hash(self.settings, f"otp:{purpose.value}", (code or "").strip())
+        expected = self._code_hash(row.public_id, row.user_id, purpose, row.target, code)
         if not equal(expected, row.code_hash):
             row.attempts += 1
             audit.record(self.db, action="auth.code_failed", category=AuditCategory.SECURITY,
@@ -121,11 +141,11 @@ class AuthService:
         row.consumed_at = _now()
         return row
 
-    def _create_session(self, user: User) -> str:
+    def _create_session(self, user: User, aal: int = 1) -> str:
         token = new_session_token()
         now = _now()
         self.db.add(UserSession(
-            user_id=user.id, token_hash=sha256_hex(token),
+            user_id=user.id, token_hash=sha256_hex(token), aal=aal,
             expires_at=now + timedelta(hours=self.settings.session_ttl_hours),
             user_agent=(self.client.user_agent or "")[:200] or None, ip_hash=self.ip_key,
         ))
@@ -143,8 +163,16 @@ class AuthService:
                      details={"reason": reason, "count": count})
         return count
 
+    def _send(self, channel: str, to: str, body: str) -> None:
+        """All outbound OTP/notice traffic is limited per destination, per client and globally,
+        so attackers cannot pump paid SMS to premium numbers (ID-011)."""
+        self._limit(rl.SMS_PER_DESTINATION, keyed_hash(self.settings, "dest", to))
+        self._limit(rl.SMS_PER_IP, self.ip_key)
+        self._limit(rl.SMS_GLOBAL, "all")
+        self.notifier.send(channel, to, body)
+
     def _sms(self, phone: str, body: str) -> None:
-        self.notifier.send("sms", phone, body)
+        self._send("sms", phone, body)
 
     @staticmethod
     def _clean_name(name: str) -> str:
@@ -240,7 +268,7 @@ class AuthService:
         return str(row.public_id)
 
     # ------------------------------------------------------------------ login (AUTH-007, SEC-PWD-005)
-    def login(self, identifier: str, password: str) -> str:
+    def login(self, identifier: str, password: str) -> LoginResult:
         self._limit(rl.LOGIN_PER_IP, self.ip_key)
         try:
             kind, ident = classify(identifier, self.settings.default_phone_region)
@@ -299,12 +327,72 @@ class AuthService:
 
         user.failed_login_count = 0
         user.locked_until = None
-        user.last_login_at = now
         if needs_rehash(user.password_hash):
             user.password_hash = hash_password(password)
-        token = self._create_session(user)
+        if user.totp_enabled_at is not None:
+            challenge = LoginChallenge(public_id=uuid.uuid4(), user_id=user.id, attempts=0,
+                                       expires_at=now + timedelta(minutes=5))
+            self.db.add(challenge)
+            audit.record(self.db, action="auth.login_mfa_challenged", category=AuditCategory.SECURITY,
+                         entity_type="user", entity_id=user.id)
+            self.db.commit()
+            return LoginResult(challenge_id=str(challenge.public_id))
+        user.last_login_at = now
+        token = self._create_session(user, aal=1)
         audit.record(self.db, action="auth.login_succeeded", category=AuditCategory.SECURITY,
-                     actor_user_id=user.id, entity_type="user", entity_id=user.id)
+                     actor_user_id=user.id, entity_type="user", entity_id=user.id, details={"aal": 1})
+        self.db.commit()
+        return LoginResult(token=token)
+
+    # ------------------------------------------------------------------ MFA (M04)
+    def check_second_factor(self, user: User, code: str) -> str | None:
+        """Accept a TOTP code (single-use per time step) or an unused recovery code.
+        Returns "totp" / "recovery" on success, None otherwise. Caller commits."""
+        from app.auth.mfa import decrypt_secret, hash_recovery, verify_totp
+
+        if user.totp_enabled_at is None or not user.totp_secret_enc:
+            return None
+        secret = decrypt_secret(self.settings, user.totp_secret_enc, user_id=user.id)
+        step = verify_totp(secret, code, last_used_step=user.totp_last_step)
+        if step is not None:
+            user.totp_last_step = step
+            return "totp"
+        rc = self.db.execute(select(RecoveryCode).where(
+            RecoveryCode.user_id == user.id, RecoveryCode.code_hash == hash_recovery(code),
+            RecoveryCode.used_at.is_(None)).with_for_update()).scalar_one_or_none()
+        if rc is not None:
+            rc.used_at = _now()
+            audit.record(self.db, action="auth.recovery_code_used", category=AuditCategory.SECURITY,
+                         actor_user_id=user.id, entity_type="user", entity_id=user.id)
+            return "recovery"
+        return None
+
+    def complete_mfa_login(self, challenge_id: str, code: str) -> str:
+        self._limit(rl.OTP_VERIFY_PER_IP, self.ip_key)
+        try:
+            pid = uuid.UUID(str(challenge_id))
+        except ValueError:
+            raise self._fail(GENERIC_CODE_FAILED, status=401, code="invalid_code") from None
+        ch = self.db.execute(select(LoginChallenge).where(LoginChallenge.public_id == pid).with_for_update()) \
+            .scalar_one_or_none()
+        if ch is None or ch.consumed_at is not None or ch.expires_at <= _now() \
+                or ch.attempts >= self.settings.otp_max_attempts:
+            raise self._fail(GENERIC_CODE_FAILED, status=401, code="invalid_code")
+        user = self.db.get(User, ch.user_id, with_for_update=True)
+        if user is None or user.status != UserStatus.ACTIVE:
+            raise self._fail(GENERIC_CODE_FAILED, status=401, code="invalid_code")
+        method = self.check_second_factor(user, code)
+        if method is None:
+            ch.attempts += 1
+            audit.record(self.db, action="auth.mfa_failed", category=AuditCategory.SECURITY,
+                         entity_type="user", entity_id=user.id, details={"attempts": ch.attempts})
+            raise self._fail(GENERIC_CODE_FAILED, status=401, code="invalid_code")
+        ch.consumed_at = _now()
+        user.last_login_at = _now()
+        token = self._create_session(user, aal=2)
+        audit.record(self.db, action="auth.login_succeeded", category=AuditCategory.SECURITY,
+                     actor_user_id=user.id, entity_type="user", entity_id=user.id,
+                     details={"aal": 2, "method": method})
         self.db.commit()
         return token
 
@@ -379,16 +467,27 @@ class AuthService:
         row, code = self._issue_code(user, CodePurpose.RESET_PASSWORD, target, self.settings.reset_ttl_minutes)
         body = (f"Bongo Markets: Namba ya kurejesha nenosiri ni {code}. Inaisha baada ya dakika "
                 f"{self.settings.reset_ttl_minutes}. Kama hukuomba, puuza ujumbe huu.")
-        self.notifier.send("sms" if kind == "phone" else "email", target, body)
+        self._send("sms" if kind == "phone" else "email", target, body)
         audit.record(self.db, action="auth.password_reset_requested", category=AuditCategory.SECURITY,
                      entity_type="user", entity_id=user.id, details={"channel": kind})
         self.db.commit()
         return str(row.public_id)
 
-    def reset_password(self, reset_id: str, code: str, new_password: str) -> None:
+    def reset_password(self, reset_id: str, code: str, new_password: str, mfa_code: str | None = None) -> None:
         self._limit(rl.OTP_VERIFY_PER_IP, self.ip_key)
         row = self._consume_code(reset_id, CodePurpose.RESET_PASSWORD, code)
         user = self.db.get(User, row.user_id, with_for_update=True)
+        if user.totp_enabled_at is not None:
+            # ID-008: an SMS code alone never recovers an MFA-protected (incl. privileged) account.
+            if not mfa_code or self.check_second_factor(user, mfa_code) is None:
+                # Keep the SMS code usable for a retry, but count this as a failed attempt so the
+                # reset flow cannot be used to brute-force the second factor.
+                row.consumed_at = None
+                row.attempts += 1
+                audit.record(self.db, action="auth.password_reset_mfa_failed", category=AuditCategory.SECURITY,
+                             entity_type="user", entity_id=row.user_id)
+                raise self._fail("Akaunti hii inalindwa na MFA. Weka namba ya programu ya uthibitishaji "
+                                 "au namba ya dharura.", status=400, code="mfa_required", field="mfa_code")
         try:
             check_policy(new_password, personal=[*user.full_name.split(), user.phone_e164, user.phone_e164[-9:],
                                                  (user.email or "").split("@")[0]])
@@ -416,7 +515,7 @@ class AuthService:
         if user.email != email_norm:
             user.email, user.email_verified_at = email_norm, None
         row, code = self._issue_code(user, CodePurpose.VERIFY_EMAIL, email_norm, self.settings.otp_ttl_minutes)
-        self.notifier.send("email", email_norm, f"Bongo Markets: Namba ya kuthibitisha barua pepe ni {code}.")
+        self._send("email", email_norm, f"Bongo Markets: Namba ya kuthibitisha barua pepe ni {code}.")
         self.db.commit()
         return str(row.public_id)
 

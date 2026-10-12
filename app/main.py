@@ -14,6 +14,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api import health, system
 from app.auth import api as auth_api
+from app.auth import security_api, security_web
 from app.auth import web as auth_web
 from app.auth.notify import build_notifier
 from app.core.config import Settings, get_settings
@@ -122,6 +123,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(system.router, prefix="/api/v1")
     app.include_router(auth_api.router, prefix="/api/v1")
+    app.include_router(security_api.router, prefix="/api/v1")
+    app.include_router(security_web.router)
     app.include_router(auth_web.router)
     app.include_router(pages.router)
     return app

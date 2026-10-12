@@ -303,3 +303,108 @@ tests:
     requirements: [ID-006]
     title: Abandoned unverified sign-ups can be replaced by the real owner
     protected: false
+  - id: M04-T001
+    module: M04
+    requirements: [SEC-MFA-004, V13-SEC-002]
+    title: TOTP matches RFC 6238 and a used code cannot be replayed
+    protected: true
+  - id: M04-T002
+    module: M04
+    requirements: [SEC-MFA-004, ID-010]
+    title: TOTP enrolment encrypts the secret, issues recovery codes and resets trust
+    protected: true
+  - id: M04-T003
+    module: M04
+    requirements: [AUTH-004, ID-004]
+    title: MFA login challenge is bound, attempt-limited, single-use and expires
+    protected: true
+  - id: M04-T004
+    module: M04
+    requirements: [SEC-MFA-004]
+    title: Recovery codes are stored hashed and work once
+    protected: true
+  - id: M04-T005
+    module: M04
+    requirements: [SEC-MFA-002, AUTH-008]
+    title: Step-up grants are bound to action and session, <=300 s and single-use
+    protected: true
+  - id: M04-T006
+    module: M04
+    requirements: [SEC-MFA-002]
+    title: Disabling MFA needs step-up with the TOTP factor
+    protected: true
+  - id: M04-T007
+    module: M04
+    requirements: [AUTH-004, AUTH-005, AUTH-009, SEC-002]
+    title: Sessions are listed safely and revocation is immediate
+    protected: true
+  - id: M04-T008
+    module: M04
+    requirements: [ID-005, ID-008, ID-010, SEC-MFA-002]
+    title: Phone change needs step-up and a code sent to the new number
+    protected: true
+  - id: M04-T009
+    module: M04
+    requirements: [ID-004, ID-005]
+    title: OTPs are bound to purpose, challenge and destination
+    protected: true
+  - id: M04-T010
+    module: M04
+    requirements: [ID-008]
+    title: Password reset of an MFA account needs the second factor, not SMS alone
+    protected: true
+  - id: M04-T011
+    module: M04
+    requirements: [ID-011]
+    title: SMS pumping is limited per destination, client and globally
+    protected: true
+  - id: M04-T012
+    module: M04
+    requirements: [ID-012]
+    title: Passwords, OTPs, TOTP secrets, recovery codes and tokens never reach logs
+    protected: true
+  - id: M04-T013
+    module: M04
+    requirements: [AUTH-008, AUTH-005, ID-007]
+    title: Roles cannot be self-assigned; grants need admin role, MFA session and step-up
+    protected: true
+  - id: M04-T014
+    module: M04
+    requirements: [SEC-MFA-004, ID-007]
+    title: Privileged roles require TOTP; admins cannot drop MFA; aal1 sessions blocked
+    protected: true
+  - id: M04-T015
+    module: M04
+    requirements: [SEC-IR-003]
+    title: Responders can suspend, reinstate, sign out users and suspend payments, all audited
+    protected: true
+  - id: M04-T016
+    module: M04
+    requirements: [V13-SEC-002]
+    title: Event replay guard enforces timestamp window and unique event ids
+    protected: true
+  - id: M04-T017
+    module: M04
+    requirements: [SEC-IR-003]
+    title: Operator CLI bootstraps the first Super Admin safely and supports break-glass actions
+    protected: true
+  - id: M04-T018
+    module: M04
+    requirements: [AUTH-009]
+    title: Role revocation invalidates the affected sessions immediately
+    protected: true
+  - id: M04-T019
+    module: M04
+    requirements: [SEC-MFA-004]
+    title: Swahili web pages enrol MFA with QR code and complete MFA login
+    protected: false
+  - id: M04-T020
+    module: M04
+    requirements: [SEC-MFA-002]
+    title: Changing a verified email needs step-up
+    protected: true
+  - id: M04-T021
+    module: M04
+    requirements: [SEC-MFA-002, SEC-009]
+    title: Unknown step-up actions are rejected and step-up is rate limited
+    protected: true
