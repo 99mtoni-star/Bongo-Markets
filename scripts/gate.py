@@ -32,6 +32,7 @@ def main() -> None:
     py = sys.executable
     step("Lint", [py, "-m", "ruff", "check", "."])
     step("Test catalogue", [py, "scripts/check_catalogue.py"])
+    step("Sensitive migration review", [py, "scripts/check_migrations.py"])
     step(f"Focused tests {module}", [py, "-m", "pytest", "-q", "-m", f"module_{module.lower()}"])
     step("Protected-control regression", [py, "-m", "pytest", "-q", "-m", "protected"])
     step("Full regression", [py, "-m", "pytest", "-q"])

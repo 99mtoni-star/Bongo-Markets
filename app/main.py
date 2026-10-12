@@ -15,6 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.api import health, system
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, request_id_var
+from app.db.session import session_factory
 from app.web import pages
 
 logger = logging.getLogger("bongomarkets")
@@ -43,6 +44,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url=None if settings.is_production_like else "/openapi.json",
     )
     app.state.settings = settings
+    app.state.session_factory = session_factory(settings)  # engine connects lazily
 
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     if settings.cors_origins:

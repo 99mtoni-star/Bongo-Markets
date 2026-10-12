@@ -39,8 +39,14 @@ def test_production_rejects_unsafe_settings(make_settings):
             BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DEBUG="true",
             BM_DATABASE_URL="sqlite:///x.db", BM_ALLOWED_HOSTS='["*"]',
         )
+    assert "PostgreSQL" in str(exc.value)
+    with pytest.raises(ValueError) as exc:
+        make_settings(
+            BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DEBUG="true",
+            BM_DATABASE_URL=POSTGRES, BM_ALLOWED_HOSTS='["*"]',
+        )
     msg = str(exc.value)
-    assert "BM_DEBUG" in msg and "PostgreSQL" in msg and "BM_ALLOWED_HOSTS" in msg
+    assert "BM_DEBUG" in msg and "BM_ALLOWED_HOSTS" in msg
     ok = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES)
     assert ok.is_production_like
 
@@ -48,8 +54,10 @@ def test_production_rejects_unsafe_settings(make_settings):
 @pytest.mark.tid("M01-T004")
 def test_health_probes(client):
     assert client.get("/health/live").json() == {"status": "ok"}
+    # Without a reachable database, readiness must report unavailable (503) without leaking errors.
     r = client.get("/health/ready")
-    assert r.status_code == 200 and r.json()["status"] == "ok"
+    assert r.status_code == 503 and r.json()["checks"]["database"] == "unavailable"
+    assert "password" not in r.text.lower() and "psycopg" not in r.text.lower()
 
 
 @pytest.mark.tid("M01-T005")
@@ -97,7 +105,7 @@ def test_log_redaction():
 @pytest.mark.tid("M01-T008")
 def test_system_info_hides_secrets(make_settings):
     s = make_settings(BM_ENVIRONMENT="test", BM_SECRET_KEY="super-secret-value-123",
-                      BM_DATABASE_URL="sqlite:///./hidden-name.db")
+                      BM_DATABASE_URL="postgresql+psycopg://u:pw@h/hidden-name")
     body = TestClient(create_app(s)).get("/api/v1/system/info").text
     assert "super-secret-value-123" not in body and "hidden-name" not in body
     assert "super-secret-value-123" not in repr(s)

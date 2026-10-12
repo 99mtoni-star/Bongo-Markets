@@ -78,3 +78,103 @@ tests:
     requirements: [NFR-006]
     title: Structured request log carries the correlation request ID
     protected: true
+  - id: M02-T001
+    module: M02
+    requirements: [SEC-005]
+    title: Application role cannot run DDL (create/drop/alter)
+    protected: true
+  - id: M02-T002
+    module: M02
+    requirements: [SEC-005]
+    title: Database roles are non-superuser; read-only role cannot write
+    protected: true
+  - id: M02-T003
+    module: M02
+    requirements: [SEC-AUD-001]
+    title: Application role cannot UPDATE, DELETE or TRUNCATE audit records
+    protected: true
+  - id: M02-T004
+    module: M02
+    requirements: [SEC-AUD-001]
+    title: Append-only trigger blocks audit mutation even for the owner
+    protected: true
+  - id: M02-T005
+    module: M02
+    requirements: [SEC-AUD-001, NFR-008]
+    title: Audit service records events with request ID and redacts secrets
+    protected: true
+  - id: M02-T006
+    module: M02
+    requirements: [SEC-006]
+    title: SQL injection payload is stored as inert data via the ORM
+    protected: true
+  - id: M02-T007
+    module: M02
+    requirements: [SEC-006]
+    title: No string-built SQL in application code
+    protected: true
+  - id: M02-T008
+    module: M02
+    requirements: [SEC-SDLC-004]
+    title: Migrations upgrade and downgrade cleanly
+    protected: false
+  - id: M02-T009
+    module: M02
+    requirements: [SEC-SDLC-004]
+    title: ORM models and migrated schema do not drift
+    protected: true
+  - id: M02-T010
+    module: M02
+    requirements: [FIN-LED-006]
+    title: Money type is fixed-precision NUMERIC(18,2)
+    protected: true
+  - id: M02-T011
+    module: M02
+    requirements: [NFR-003]
+    title: Readiness reports database, server version and migration state
+    protected: false
+  - id: M02-T012
+    module: M02
+    requirements: [SEC-SDLC-004]
+    title: Sensitive migrations require an explicit review line
+    protected: true
+  - id: M02-T013
+    module: M02
+    requirements: [SEC-CFG-006]
+    title: Release checksum verification rejects tampered files
+    protected: true
+  - id: M02-T014
+    module: M02
+    requirements: [NFR-007, NFR-M03, SEC-KEY-005, NFR-DR-006]
+    title: Backup is encrypted and a restore test passes
+    protected: true
+  - id: M02-T015
+    module: M02
+    requirements: [NFR-007, SEC-KEY-005]
+    title: Restore rejects a wrong key and a tampered backup
+    protected: true
+  - id: M02-T016
+    module: M02
+    requirements: [NFR-DR-005]
+    title: Backup retention prunes files older than the retention window
+    protected: false
+  - id: M02-T017
+    module: M02
+    requirements: [NFR-DR-008]
+    title: Disaster restore marks payments non-authoritative until reconciled
+    protected: true
+  - id: M02-T018
+    module: M02
+    requirements: [NFR-DR-004]
+    title: Server is configured for point-in-time recovery (WAL archiving)
+    protected: false
+  - id: M02-T019
+    module: M02
+    requirements: [SEC-KEY-002]
+    title: Secrets can be loaded from secret-manager files
+    protected: false
+  - id: M02-T020
+    module: M02
+    requirements: [SEC-CFG-005]
+    title: README and runbook share one authoritative deployment order
+    protected: false

@@ -7,16 +7,35 @@ permissions:
 jobs:
   gate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci_admin_pw
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+        ports: ["5432:5432"]
+    env:
+      BM_TEST_ADMIN_URL: postgresql://postgres:ci_admin_pw@127.0.0.1:5432/postgres
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Enable WAL archiving on the CI database (PITR check)
+        run: |
+          PGPASSWORD=ci_admin_pw psql -h 127.0.0.1 -U postgres -c "ALTER SYSTEM SET archive_mode = on" \
+            -c "ALTER SYSTEM SET archive_command = 'true'"
+          docker restart ${{ job.services.postgres.id }}
+          for i in $(seq 1 30); do pg_isready -h 127.0.0.1 && break; sleep 1; done
       - run: pip install -r requirements-dev.txt
       - name: Lint
         run: python -m ruff check .
       - name: Test catalogue (DEV-004)
         run: python scripts/check_catalogue.py
+      - name: Sensitive migration review (SEC-SDLC-004)
+        run: python scripts/check_migrations.py
       - name: Protected-control regression (DEV-005)
         run: python -m pytest -q -m protected
       - name: Full regression
