@@ -41,7 +41,7 @@ def make_settings(monkeypatch):
 
     def _make(**env: str) -> Settings:
         for key in list(__import__("os").environ):
-            if key.startswith("KAR_"):
+            if key.startswith("BM_"):
                 monkeypatch.delenv(key, raising=False)
         for k, v in env.items():
             monkeypatch.setenv(k, v)
@@ -56,5 +56,5 @@ def client(make_settings):
 
     from app.main import create_app
 
-    app = create_app(make_settings(KAR_ENVIRONMENT="test"))
+    app = create_app(make_settings(BM_ENVIRONMENT="test"))
     return TestClient(app, raise_server_exceptions=False)

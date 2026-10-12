@@ -6,7 +6,7 @@ tests:
   - id: M01-T001
     module: M01
     requirements: [NFR-005]
-    title: Configuration is loaded from environment variables with KAR_ prefix
+    title: Configuration is loaded from environment variables with BM_ prefix
     protected: true
   - id: M01-T002
     module: M01
@@ -16,7 +16,7 @@ tests:
   - id: M01-T003
     module: M01
     requirements: [NFR-005]
-    title: Production refuses debug mode, non-MariaDB database and wildcard hosts
+    title: Production refuses debug mode, non-PostgreSQL database and wildcard hosts
     protected: true
   - id: M01-T004
     module: M01
@@ -72,4 +72,9 @@ tests:
     module: M01
     requirements: [NFR-005]
     title: Untrusted Host header is rejected
+    protected: true
+  - id: M01-T015
+    module: M01
+    requirements: [NFR-006]
+    title: Structured request log carries the correlation request ID
     protected: true

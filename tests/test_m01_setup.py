@@ -15,33 +15,33 @@ from app.main import create_app
 
 ROOT = Path(__file__).resolve().parent.parent
 STRONG = "x" * 48
-MARIADB = "mysql+pymysql://kar_app:pw@db:3306/kariakoo"
+POSTGRES = "postgresql+psycopg://bm_app:pw@db:5432/bongomarkets"
 
 
 @pytest.mark.tid("M01-T001")
 def test_config_from_env(make_settings):
-    s = make_settings(KAR_APP_NAME="Kariakoo Test", KAR_LOG_LEVEL="DEBUG")
-    assert s.app_name == "Kariakoo Test"
+    s = make_settings(BM_APP_NAME="Bongo Markets Test", BM_LOG_LEVEL="DEBUG")
+    assert s.app_name == "Bongo Markets Test"
     assert s.log_level == "DEBUG"
 
 
 @pytest.mark.tid("M01-T002")
 @pytest.mark.parametrize("secret", ["change-me", "short", "secret"])
 def test_production_rejects_weak_secret(make_settings, secret):
-    with pytest.raises(ValueError, match="KAR_SECRET_KEY"):
-        make_settings(KAR_ENVIRONMENT="production", KAR_SECRET_KEY=secret, KAR_DATABASE_URL=MARIADB)
+    with pytest.raises(ValueError, match="BM_SECRET_KEY"):
+        make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=secret, BM_DATABASE_URL=POSTGRES)
 
 
 @pytest.mark.tid("M01-T003")
 def test_production_rejects_unsafe_settings(make_settings):
     with pytest.raises(ValueError) as exc:
         make_settings(
-            KAR_ENVIRONMENT="production", KAR_SECRET_KEY=STRONG, KAR_DEBUG="true",
-            KAR_DATABASE_URL="sqlite:///x.db", KAR_ALLOWED_HOSTS='["*"]',
+            BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DEBUG="true",
+            BM_DATABASE_URL="sqlite:///x.db", BM_ALLOWED_HOSTS='["*"]',
         )
     msg = str(exc.value)
-    assert "KAR_DEBUG" in msg and "MariaDB" in msg and "KAR_ALLOWED_HOSTS" in msg
-    ok = make_settings(KAR_ENVIRONMENT="production", KAR_SECRET_KEY=STRONG, KAR_DATABASE_URL=MARIADB)
+    assert "BM_DEBUG" in msg and "PostgreSQL" in msg and "BM_ALLOWED_HOSTS" in msg
+    ok = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES)
     assert ok.is_production_like
 
 
@@ -54,7 +54,7 @@ def test_health_probes(client):
 
 @pytest.mark.tid("M01-T005")
 def test_unhandled_error_is_controlled(make_settings):
-    app = create_app(make_settings(KAR_ENVIRONMENT="test"))
+    app = create_app(make_settings(BM_ENVIRONMENT="test"))
 
     @app.get("/boom")
     def boom():
@@ -77,6 +77,14 @@ def test_security_headers_and_request_id(client):
     assert client.get("/health/live", headers={"X-Request-ID": "<script>"}).headers["X-Request-ID"] != "<script>"
 
 
+@pytest.mark.tid("M01-T015")
+def test_request_log_carries_request_id(client, caplog):
+    with caplog.at_level(logging.INFO, logger="bongomarkets"):
+        client.get("/health/live", headers={"X-Request-ID": "trace42"})
+    lines = [json.loads(JsonFormatter().format(r)) for r in caplog.records if r.getMessage() == "request"]
+    assert lines and lines[-1]["request_id"] == "trace42" and lines[-1]["status"] == 200
+
+
 @pytest.mark.tid("M01-T007")
 def test_log_redaction():
     rec = logging.LogRecord("t", logging.INFO, __file__, 1, "login", None, None)
@@ -88,8 +96,8 @@ def test_log_redaction():
 
 @pytest.mark.tid("M01-T008")
 def test_system_info_hides_secrets(make_settings):
-    s = make_settings(KAR_ENVIRONMENT="test", KAR_SECRET_KEY="super-secret-value-123",
-                      KAR_DATABASE_URL="sqlite:///./hidden-name.db")
+    s = make_settings(BM_ENVIRONMENT="test", BM_SECRET_KEY="super-secret-value-123",
+                      BM_DATABASE_URL="sqlite:///./hidden-name.db")
     body = TestClient(create_app(s)).get("/api/v1/system/info").text
     assert "super-secret-value-123" not in body and "hidden-name" not in body
     assert "super-secret-value-123" not in repr(s)
@@ -148,7 +156,7 @@ def test_status_page(client):
 
 @pytest.mark.tid("M01-T013")
 def test_docs_disabled_in_production(make_settings):
-    s = make_settings(KAR_ENVIRONMENT="production", KAR_SECRET_KEY=STRONG, KAR_DATABASE_URL=MARIADB)
+    s = make_settings(BM_ENVIRONMENT="production", BM_SECRET_KEY=STRONG, BM_DATABASE_URL=POSTGRES)
     c = TestClient(create_app(s), base_url="http://localhost")
     assert c.get("/docs").status_code == 404
     assert c.get("/openapi.json").status_code == 404

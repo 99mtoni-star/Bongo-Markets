@@ -28,7 +28,7 @@ Cross-cutting foundations laid here and finalized in M20: environment-based conf
 ## Threats → controls
 
 - **Secret leakage:** `SecretStr`, redacted logs, info endpoint omits DB URL, and a source scan test (M01-T011).
-- **Unsafe production config:** the validator refuses weak secret, debug mode, non-MariaDB DB and wildcard hosts.
+- **Unsafe production config:** the validator refuses weak secret, debug mode, non-PostgreSQL DB and wildcard hosts.
 - **Information disclosure through errors:** a generic 500 body; details go only to the logs.
 - **Host-header attacks:** `TrustedHostMiddleware`.
 - **Clickjacking/XSS:** CSP, `X-Frame-Options: DENY`, every value escaped, no scripts on the page.

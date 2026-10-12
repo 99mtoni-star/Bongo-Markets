@@ -22,11 +22,11 @@ def redact(data: dict) -> dict:
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload = {
-            "ts": datetime.now(UTC).isoformat(timespec="milliseconds"),
+            "ts": datetime.fromtimestamp(record.created, UTC).isoformat(timespec="milliseconds"),
             "level": record.levelname,
             "logger": record.name,
             "msg": record.getMessage(),
-            "request_id": request_id_var.get(),
+            "request_id": getattr(record, "request_id", "-"),
         }
         extra = getattr(record, "extra_fields", None)
         if isinstance(extra, dict):
@@ -34,6 +34,19 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             payload["exc_type"] = record.exc_info[0].__name__ if record.exc_info[0] else None
         return json.dumps(payload, ensure_ascii=False, default=str)
+
+
+_base_factory = logging.getLogRecordFactory()
+
+
+def _record_factory(*args, **kwargs) -> logging.LogRecord:
+    # Stamp the correlation ID when the record is created, not when it is formatted.
+    record = _base_factory(*args, **kwargs)
+    record.request_id = request_id_var.get()
+    return record
+
+
+logging.setLogRecordFactory(_record_factory)
 
 
 def configure_logging(level: str = "INFO", json_output: bool = True) -> None:

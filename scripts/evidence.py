@@ -22,7 +22,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SAFE_ENV_KEYS = ("KAR_ENVIRONMENT", "CI", "PYTHONHASHSEED")
+SAFE_ENV_KEYS = ("BM_ENVIRONMENT", "CI", "PYTHONHASHSEED")
 
 
 def utc_now() -> str:

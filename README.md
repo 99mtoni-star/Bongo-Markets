@@ -1,16 +1,16 @@
-# Kariakoo Sokoni
+# Bongo Markets
 
 A multi-shop marketplace: sellers open shops, buyers purchase across shops, and the platform takes a commission.
 Built module by module (M01–M20) against **KAR-PROJ-SA-RTM-006 v1.3**, which covers 393 requirements.
 
-**Stack:** Python 3.11+, FastAPI, SQLAlchemy 2, Alembic, MariaDB (SQLite is allowed only for local development and tests).
+**Stack:** Python 3.11+, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL (SQLite is allowed only for local development and tests).
 
 ## Quick start
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .env.example .env        # then set KAR_SECRET_KEY
+cp .env.example .env        # then set BM_SECRET_KEY
 uvicorn app.main:app --reload
 ```
 
@@ -47,3 +47,11 @@ tests/       pytest suite + authoritative Test Catalogue
 ## Module progress
 
 See `/` in the running app, or `GET /api/v1/system/modules`.
+
+## Decisions
+
+- **2026-10-12 — Product name:** the system is called **Bongo Markets** (formerly "Kariakoo"). Source requirement IDs such as `KAR-PROJ-SA-RTM-006` keep their original names.
+- **2026-10-12 — Database:** **PostgreSQL** replaces MariaDB/MySQL. The MariaDB-specific requirements map to these PostgreSQL equivalents:
+  - NFR-DR-004 "binary logs": WAL archiving with point-in-time recovery.
+  - SEC-DB-006 "dedicated MariaDB instance": a dedicated PostgreSQL instance.
+  - Financial amounts use `NUMERIC(18,2)`.

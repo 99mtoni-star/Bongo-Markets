@@ -1,4 +1,4 @@
-"""Kariakoo application factory (M01)."""
+"""Bongo Markets application factory (M01)."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, request_id_var
 from app.web import pages
 
-logger = logging.getLogger("kariakoo")
+logger = logging.getLogger("bongomarkets")
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -62,20 +62,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         start = time.perf_counter()
         try:
             response = await call_next(request)
+            duration_ms = round((time.perf_counter() - start) * 1000, 2)
+            response.headers["X-Request-ID"] = rid
+            for key, value in SECURITY_HEADERS.items():
+                # Swagger UI (dev only; disabled in staging/production) loads assets from its CDN.
+                if key == "Content-Security-Policy" and request.url.path == "/docs":
+                    continue
+                response.headers.setdefault(key, value)
+            if settings.is_production_like:
+                response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+            logger.info(
+                "request",
+                extra={"extra_fields": {"method": request.method, "path": request.url.path,
+                                        "status": response.status_code, "duration_ms": duration_ms}},
+            )
+            return response
         finally:
             request_id_var.reset(token)
-        duration_ms = round((time.perf_counter() - start) * 1000, 2)
-        response.headers["X-Request-ID"] = rid
-        for key, value in SECURITY_HEADERS.items():
-            response.headers.setdefault(key, value)
-        if settings.is_production_like:
-            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-        logger.info(
-            "request",
-            extra={"extra_fields": {"method": request.method, "path": request.url.path,
-                                    "status": response.status_code, "duration_ms": duration_ms, "rid": rid}},
-        )
-        return response
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc: StarletteHTTPException):

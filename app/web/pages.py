@@ -63,8 +63,8 @@ def status_page(request: Request) -> HTMLResponse:
 
     html = f"""<!doctype html><html lang="sw"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kariakoo – Hali ya Mfumo</title><style>{CSS}</style></head><body>
-<header><div class="wrap"><h1>Kariakoo Sokoni</h1>
+<title>Bongo Markets – Hali ya Mfumo</title><style>{CSS}</style></head><body>
+<header><div class="wrap"><h1>Bongo Markets</h1>
 <p>Hali ya ujenzi wa mfumo · toleo {escape(s.version)} · mazingira: {escape(s.environment.value)}</p></div></header>
 <main class="wrap">
 <div class="stats">

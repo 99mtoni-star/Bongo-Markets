@@ -1,6 +1,6 @@
 """Central configuration (M01).
 
-All configuration comes from environment variables (prefix ``KAR_``) or a local
+All configuration comes from environment variables (prefix ``BM_``) or a local
 ``.env`` file. Secrets are never hard-coded (NFR-005). Production refuses to
 start with unsafe settings.
 """
@@ -26,13 +26,13 @@ class Environment(StrEnum):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="KAR_",
+        env_prefix="BM_",
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
-    app_name: str = "Kariakoo"
+    app_name: str = "Bongo Markets"
     environment: Environment = Environment.DEVELOPMENT
     debug: bool = False
     version: str = "0.1.0"
@@ -40,8 +40,8 @@ class Settings(BaseSettings):
     # Secrets
     secret_key: SecretStr = Field(default=SecretStr("change-me"))
 
-    # Database (MariaDB in staging/production; SQLite allowed only for dev/test)
-    database_url: SecretStr = Field(default=SecretStr("sqlite:///./kariakoo-dev.db"))
+    # Database (PostgreSQL in staging/production; SQLite allowed only for dev/test)
+    database_url: SecretStr = Field(default=SecretStr("sqlite:///./bongo-markets-dev.db"))
 
     # HTTP
     allowed_hosts: list[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1", "testserver"])
@@ -62,14 +62,14 @@ class Settings(BaseSettings):
         problems: list[str] = []
         secret = self.secret_key.get_secret_value()
         if secret.lower() in INSECURE_SECRETS or len(secret) < MIN_SECRET_LENGTH:
-            problems.append(f"KAR_SECRET_KEY must be a random value of at least {MIN_SECRET_LENGTH} characters")
+            problems.append(f"BM_SECRET_KEY must be a random value of at least {MIN_SECRET_LENGTH} characters")
         if self.debug:
-            problems.append("KAR_DEBUG must be false")
+            problems.append("BM_DEBUG must be false")
         db = self.database_url.get_secret_value()
-        if not db.startswith(("mysql+pymysql://", "mariadb+pymysql://", "mariadb+mariadbconnector://")):
-            problems.append("KAR_DATABASE_URL must point to MariaDB")
+        if not db.startswith(("postgresql://", "postgresql+psycopg://", "postgresql+psycopg2://")):
+            problems.append("BM_DATABASE_URL must point to PostgreSQL")
         if "*" in self.allowed_hosts:
-            problems.append("KAR_ALLOWED_HOSTS must not contain '*'")
+            problems.append("BM_ALLOWED_HOSTS must not contain '*'")
         if problems:
             raise ValueError("Unsafe configuration for {}: {}".format(self.environment.value, "; ".join(problems)))
         return self
