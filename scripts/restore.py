@@ -51,10 +51,12 @@ def _decrypt_and_verify(enc: Path, key_file: Path, workdir: Path) -> tuple[Path,
     if sha256_file(enc) != manifest["encrypted_sha256"]:
         raise SystemExit("REJECTED: encrypted backup checksum does not match its manifest")
     plain = workdir / "restore.dump"
-    subprocess.run(
+    dec = subprocess.run(
         ["openssl", "enc", "-d", *CIPHER_ARGS, "-pass", f"file:{key_file}", "-in", str(enc), "-out", str(plain)],
-        check=True,
+        capture_output=True,
     )
+    if dec.returncode != 0:
+        raise SystemExit("REJECTED: backup could not be decrypted (wrong key or corrupted file)")
     if sha256_file(plain) != manifest["plain_sha256"]:
         raise SystemExit("REJECTED: decrypted dump checksum mismatch (wrong key or corrupted file)")
     return plain, manifest

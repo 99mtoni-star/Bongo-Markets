@@ -222,7 +222,7 @@ def test_restore_rejects_wrong_key_and_tampering(pg, tmp_path, backup_key):
     enc = run_backup(pg.owner_url, backup_key, tmp_path / "b")
     wrong = tmp_path / "wrong.key"
     wrong.write_text(secrets.token_urlsafe(48))
-    with pytest.raises((SystemExit, subprocess.CalledProcessError)):
+    with pytest.raises(SystemExit, match="REJECTED"):
         restore_test(enc, pg.admin_url, pg.owner_url, wrong)
     data = bytearray(enc.read_bytes())
     data[-1] ^= 0xFF
