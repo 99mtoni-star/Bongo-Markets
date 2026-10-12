@@ -718,3 +718,18 @@ tests:
     requirements: [CAP-B2C-001, CAP-MOQ-001, CAP-RFQ-001, CAP-BRD-001, CAP-SPON-001, CAP-UX-001, V13-REQ-004]
     title: "Deferred capabilities and search scaling are recorded"
     protected: false
+  - id: M10-T001
+    module: M10
+    requirements: [SHOP-005]
+    title: "Shop admin lists only shops the user is an active member of"
+    protected: true
+  - id: M10-T002
+    module: M10
+    requirements: [SHOP-005]
+    title: "Shop dashboard is member-only and scoped by the caller's permissions"
+    protected: true
+  - id: M10-T003
+    module: M10
+    requirements: [SHOP-005]
+    title: "Shop admin operation matrix per role (owner/manager/staff/outsider)"
+    protected: true

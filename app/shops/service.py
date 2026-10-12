@@ -273,6 +273,33 @@ class ShopService(RBACService):
         return [{"from": h.from_status, "to": h.to_status, "reason": h.reason, "at": h.changed_at.isoformat()}
                 for h in rows]
 
+    # ---------------------------------------------------------------- shop admin dashboard (SHOP-005, M10)
+    def dashboard(self, ctx: SessionContext, slug: str) -> dict:
+        """Only for members of this shop (generic 404 otherwise). Sections depend on the caller's permissions."""
+        from sqlalchemy import text as sql
+
+        shop = self.shop_for(ctx, slug, "shop.admin.view")
+        perms = {p for p in ("shop.products.manage", "shop.profile.update", "shop.staff.manage",
+                             "shop.managers.manage", "shop.ownership.transfer", "shop.orders.view",
+                             "shop.orders.fulfil", "shop.analytics.view")
+                 if self.authz.can(ctx.user.id, p, shop_id=shop.id)}
+        counts = dict(self.db.execute(sql("SELECT status, count(*) FROM bm.products WHERE shop_id = :s "
+                                          "GROUP BY status"), {"s": shop.id}).all())
+        low = [{"name": n, "available": a} for n, a in self.db.execute(sql(
+            "SELECT name, stock - reserved FROM bm.products WHERE shop_id = :s AND status = 'ACTIVE' "
+            "AND stock - reserved <= 3 ORDER BY stock - reserved, name LIMIT 10"), {"s": shop.id})]
+        team = self.db.execute(sql("SELECT count(*) FROM bm.shop_users WHERE shop_id = :s AND removed_at IS NULL"),
+                               {"s": shop.id}).scalar_one()
+        out = {"shop": self._shop_dict(shop), "my_role": self.membership(shop.id, ctx.user.id).role_code,
+               "permissions": sorted(perms), "team_size": team,
+               "products": {"active": counts.get("ACTIVE", 0), "draft": counts.get("DRAFT", 0),
+                            "suspended": counts.get("SUSPENDED", 0)},
+               "low_stock": low if "shop.products.manage" in perms else []}
+        from app.shops.dashboard_hooks import extra_sections
+
+        out.update(extra_sections(self.db, shop, perms))
+        return out
+
     def pending_shops(self, ctx: SessionContext) -> list[Shop]:
         self.require_permission(ctx, "platform.shops.verify")
         return list(self.db.execute(select(Shop).where(Shop.status == ShopStatus.PENDING_VERIFICATION)

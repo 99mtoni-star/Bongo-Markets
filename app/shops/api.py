@@ -122,6 +122,11 @@ def resubmit(slug: str, ctx: SessionContext = Depends(require_session), svc: Sho
     return _run(lambda: svc._shop_dict(svc.resubmit(ctx, slug)))
 
 
+@router.get("/shops/{slug}/dashboard")
+def dashboard(slug: str, ctx: SessionContext = Depends(require_session), svc: ShopService = Depends(get_shop_service)):
+    return _run(lambda: svc.dashboard(ctx, slug))
+
+
 @router.get("/shops/{slug}/history")
 def history(slug: str, ctx: SessionContext = Depends(require_session), svc: ShopService = Depends(get_shop_service)):
     return _run(lambda: {"history": svc.history(svc.shop_for(ctx, slug, "shop.admin.view"))})

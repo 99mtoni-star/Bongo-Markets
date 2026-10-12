@@ -37,7 +37,7 @@ MODULES: tuple[Module, ...] = (
     Module("M07", "Shops, Ownership na Staff", "Maduka na wamiliki", 21, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M08", "Categories, Products na Images", "Bidhaa na picha", 16, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M09", "Bongo Markets Sokoni, Search na Filtering", "Soko kuu na utafutaji", 14, ModuleStatus.DEVELOPER_COMPLETE),
-    Module("M10", "Shop Page na Shop Admin", "Ukurasa wa duka", 1, ModuleStatus.NOT_STARTED),
+    Module("M10", "Shop Page na Shop Admin", "Ukurasa wa duka", 1, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M11", "Cart, Checkout na Stock Reservation", "Kikapu na checkout", 5, ModuleStatus.NOT_STARTED),
     Module("M12", "Orders, Fulfillment na Delivery PIN", "Oda na usafirishaji", 20, ModuleStatus.NOT_STARTED),
     Module("M13", "Online Payments na Webhooks", "Malipo ya mtandaoni", 15, ModuleStatus.NOT_STARTED),

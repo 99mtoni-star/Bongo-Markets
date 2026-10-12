@@ -131,10 +131,19 @@ def _manage_body(request: Request, svc: ShopService, ctx: SessionContext, slug: 
                   f"<button class='primary' type='submit'>Tuma tena kwa uthibitisho</button></form>")
     hist = "".join(f"<li>{escape(h['at'][:16].replace('T', ' '))}: {pill(h['to'])} {escape(h['reason'] or '')}</li>"
                    for h in svc.history(shop))
+    dash = svc.dashboard(ctx, slug)
+    low = "".join(f"<li>{escape(x['name'])}: <b>{x['available']}</b> zimebaki</li>" for x in dash["low_stock"])
+    extra = "".join(f"<div class='stat'><b>{escape(str(v['value']))}</b><span>{escape(v['label'])}</span></div>"
+                    for v in dash.get("cards", []))
+    stats = f"""<div class="stats">
+<div class="stat"><b>{dash['products']['active']}</b><span>Bidhaa zinazouzwa</span></div>
+<div class="stat"><b>{dash['products']['draft']}</b><span>Rasimu</span></div>
+<div class="stat"><b>{dash['team_size']}</b><span>Wanachama wa duka</span></div>{extra}</div>
+{f"<div class='alert err'><b>Stock inakaribia kuisha:</b><ul>{low}</ul></div>" if low else ""}"""
     return f"""<div class="hero"><h1>{escape(shop.name)}</h1>
 <p>{pill(shop.status)} · Jukumu lako: <b>{escape(ROLE_SW[me.role_code])}</b> ·
 <a href="/maduka/{escape(slug)}/bidhaa">Bidhaa</a> · <a href="/duka/{escape(slug)}">Ukurasa wa wateja →</a></p></div>
-{alert(notice, "ok")}{banner}
+{alert(notice, "ok")}{banner}{stats}
 <div class="card"><h1 class="sm">Wanachama wa duka</h1>{err("wanachama")}
 <table><tbody>{''.join(rows)}</tbody></table>{add_form}</div>
 {profile}{transfer}
