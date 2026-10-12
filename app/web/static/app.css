@@ -75,3 +75,5 @@ a.btn.ghost{background:transparent;color:var(--brand);border:2px solid var(--bra
 .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}.tile h3{margin:0 0 6px}
 .prose{max-width:720px}.prose h2{font-size:20px;margin-top:26px}
 .skip{position:absolute;left:-999px}.skip:focus{left:16px;top:8px;background:#fff;color:#000;padding:8px;z-index:20}
+select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--bg);color:var(--ink)}
+form.inline{display:inline}

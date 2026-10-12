@@ -44,5 +44,6 @@ def rbac_matrix(request: Request, ctx: SessionContext | None = Depends(optional_
 kimekatazwa.</p></div>
 <h2 class="sec">Majukumu ya jukwaa (platform)</h2>{matrix("PLATFORM", cat["platform_roles"])}
 <h2 class="sec">Majukumu ya duka (shop)</h2>{matrix("SHOP", cat["shop_roles"])}
+<p><a href="/simamizi/maduka">Maduka yanayosubiri uthibitisho →</a></p>
 <footer>Mabadiliko hufanywa kupitia API yenye MFA, step-up, CSRF na If-Match (docs/api/rbac.md).</footer>"""
     return _html(request, "Majukumu", body, ctx=ctx)

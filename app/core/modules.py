@@ -34,7 +34,7 @@ MODULES: tuple[Module, ...] = (
     Module("M04", "MFA, Sessions na Password Recovery", "Ulinzi wa ziada na sessions", 18, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M05", "Users, Roles na Permissions", "Watumiaji na ruhusa", 32, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M06", "Shared UI, Header na Navigation", "Muonekano wa pamoja", 11, ModuleStatus.DEVELOPER_COMPLETE),
-    Module("M07", "Shops, Ownership na Staff", "Maduka na wamiliki", 21, ModuleStatus.NOT_STARTED),
+    Module("M07", "Shops, Ownership na Staff", "Maduka na wamiliki", 21, ModuleStatus.DEVELOPER_COMPLETE),
     Module("M08", "Categories, Products na Images", "Bidhaa na picha", 16, ModuleStatus.NOT_STARTED),
     Module("M09", "Marketplace (Soko Kuu), Search na Filtering", "Soko kuu na utafutaji", 14, ModuleStatus.NOT_STARTED),
     Module("M10", "Shop Page na Shop Admin", "Ukurasa wa duka", 1, ModuleStatus.NOT_STARTED),

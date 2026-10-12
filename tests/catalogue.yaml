@@ -6,540 +6,605 @@ tests:
   - id: M01-T001
     module: M01
     requirements: [NFR-005]
-    title: Configuration is loaded from environment variables with BM_ prefix
+    title: "Configuration is loaded from environment variables with BM_ prefix"
     protected: true
   - id: M01-T002
     module: M01
     requirements: [NFR-005, SEC-KEY-002]
-    title: Production refuses default or short secret key
+    title: "Production refuses default or short secret key"
     protected: true
   - id: M01-T003
     module: M01
     requirements: [NFR-005]
-    title: Production refuses debug mode, non-PostgreSQL database and wildcard hosts
+    title: "Production refuses debug mode, non-PostgreSQL database and wildcard hosts"
     protected: true
   - id: M01-T004
     module: M01
     requirements: [NFR-003]
-    title: Liveness and readiness probes respond
+    title: "Liveness and readiness probes respond"
     protected: false
   - id: M01-T005
     module: M01
     requirements: [NFR-003]
-    title: Unhandled errors return a controlled 500 without internal details
+    title: "Unhandled errors return a controlled 500 without internal details"
     protected: true
   - id: M01-T006
     module: M01
     requirements: [SEC-007]
-    title: Security headers and request ID are present on every response
+    title: "Security headers and request ID are present on every response"
     protected: true
   - id: M01-T007
     module: M01
     requirements: [NFR-008]
-    title: Sensitive fields are redacted in structured logs
+    title: "Sensitive fields are redacted in structured logs"
     protected: true
   - id: M01-T008
     module: M01
     requirements: [NFR-005]
-    title: System info endpoint does not expose secrets or database URL
+    title: "System info endpoint does not expose secrets or database URL"
     protected: true
   - id: M01-T009
     module: M01
     requirements: [DEV-004]
-    title: Test catalogue IDs are unique and match implemented tests exactly
+    title: "Test catalogue IDs are unique and match implemented tests exactly"
     protected: true
   - id: M01-T010
     module: M01
     requirements: [DEV-006]
-    title: Evidence bundle records command, UTC time, versions, exit code and hashes
+    title: "Evidence bundle records command, UTC time, versions, exit code and hashes"
     protected: false
   - id: M01-T011
     module: M01
     requirements: [NFR-005]
-    title: No hard-coded secrets in application source
+    title: "No hard-coded secrets in application source"
     protected: true
   - id: M01-T012
     module: M01
     requirements: [NFR-004]
-    title: Status page renders all 20 modules and escapes content
+    title: "Status page renders all 20 modules and escapes content"
     protected: false
   - id: M01-T013
     module: M01
     requirements: [NFR-005]
-    title: API docs are disabled in production-like environments
+    title: "API docs are disabled in production-like environments"
     protected: true
   - id: M01-T014
     module: M01
     requirements: [NFR-005]
-    title: Untrusted Host header is rejected
+    title: "Untrusted Host header is rejected"
     protected: true
   - id: M01-T015
     module: M01
     requirements: [NFR-006]
-    title: Structured request log carries the correlation request ID
+    title: "Structured request log carries the correlation request ID"
     protected: true
   - id: M02-T001
     module: M02
     requirements: [SEC-005]
-    title: Application role cannot run DDL (create/drop/alter)
+    title: "Application role cannot run DDL (create/drop/alter)"
     protected: true
   - id: M02-T002
     module: M02
     requirements: [SEC-005]
-    title: Database roles are non-superuser; read-only role cannot write
+    title: "Database roles are non-superuser; read-only role cannot write"
     protected: true
   - id: M02-T003
     module: M02
     requirements: [SEC-AUD-001]
-    title: Application role cannot UPDATE, DELETE or TRUNCATE audit records
+    title: "Application role cannot UPDATE, DELETE or TRUNCATE audit records"
     protected: true
   - id: M02-T004
     module: M02
     requirements: [SEC-AUD-001]
-    title: Append-only trigger blocks audit mutation even for the owner
+    title: "Append-only trigger blocks audit mutation even for the owner"
     protected: true
   - id: M02-T005
     module: M02
     requirements: [SEC-AUD-001, NFR-008]
-    title: Audit service records events with request ID and redacts secrets
+    title: "Audit service records events with request ID and redacts secrets"
     protected: true
   - id: M02-T006
     module: M02
     requirements: [SEC-006]
-    title: SQL injection payload is stored as inert data via the ORM
+    title: "SQL injection payload is stored as inert data via the ORM"
     protected: true
   - id: M02-T007
     module: M02
     requirements: [SEC-006]
-    title: No string-built SQL in application code
+    title: "No string-built SQL in application code"
     protected: true
   - id: M02-T008
     module: M02
     requirements: [SEC-SDLC-004]
-    title: Migrations upgrade and downgrade cleanly
+    title: "Migrations upgrade and downgrade cleanly"
     protected: false
   - id: M02-T009
     module: M02
     requirements: [SEC-SDLC-004]
-    title: ORM models and migrated schema do not drift
+    title: "ORM models and migrated schema do not drift"
     protected: true
   - id: M02-T010
     module: M02
     requirements: [FIN-LED-006]
-    title: Money type is fixed-precision NUMERIC(18,2)
+    title: "Money type is fixed-precision NUMERIC(18,2)"
     protected: true
   - id: M02-T011
     module: M02
     requirements: [NFR-003]
-    title: Readiness reports database, server version and migration state
+    title: "Readiness reports database, server version and migration state"
     protected: false
   - id: M02-T012
     module: M02
     requirements: [SEC-SDLC-004]
-    title: Sensitive migrations require an explicit review line
+    title: "Sensitive migrations require an explicit review line"
     protected: true
   - id: M02-T013
     module: M02
     requirements: [SEC-CFG-006]
-    title: Release checksum verification rejects tampered files
+    title: "Release checksum verification rejects tampered files"
     protected: true
   - id: M02-T014
     module: M02
     requirements: [NFR-007, NFR-M03, SEC-KEY-005, NFR-DR-006]
-    title: Backup is encrypted and a restore test passes
+    title: "Backup is encrypted and a restore test passes"
     protected: true
   - id: M02-T015
     module: M02
     requirements: [NFR-007, SEC-KEY-005]
-    title: Restore rejects a wrong key and a tampered backup
+    title: "Restore rejects a wrong key and a tampered backup"
     protected: true
   - id: M02-T016
     module: M02
     requirements: [NFR-DR-005]
-    title: Backup retention prunes files older than the retention window
+    title: "Backup retention prunes files older than the retention window"
     protected: false
   - id: M02-T017
     module: M02
     requirements: [NFR-DR-008]
-    title: Disaster restore marks payments non-authoritative until reconciled
+    title: "Disaster restore marks payments non-authoritative until reconciled"
     protected: true
   - id: M02-T018
     module: M02
     requirements: [NFR-DR-004]
-    title: Server is configured for point-in-time recovery (WAL archiving)
+    title: "Server is configured for point-in-time recovery (WAL archiving)"
     protected: false
   - id: M02-T019
     module: M02
     requirements: [SEC-KEY-002]
-    title: Secrets can be loaded from secret-manager files
+    title: "Secrets can be loaded from secret-manager files"
     protected: false
   - id: M02-T020
     module: M02
     requirements: [SEC-CFG-005]
-    title: README and runbook share one authoritative deployment order
+    title: "README and runbook share one authoritative deployment order"
     protected: false
   - id: M03-T001
     module: M03
     requirements: [AUTH-001, AUTH-003, SEC-001, SEC-PWD-001]
-    title: Registration creates a pending user with an Argon2id hash and sends an SMS code
+    title: "Registration creates a pending user with an Argon2id hash and sends an SMS code"
     protected: true
   - id: M03-T002
     module: M03
     requirements: [AUTH-002]
-    title: Phone numbers normalize to E.164 and email to trimmed lowercase
+    title: "Phone numbers normalize to E.164 and email to trimmed lowercase"
     protected: true
   - id: M03-T003
     module: M03
     requirements: [AUTH-006, SEC-WEB-002]
-    title: Phone verification activates the account and sets a hardened session cookie
+    title: "Phone verification activates the account and sets a hardened session cookie"
     protected: true
   - id: M03-T004
     module: M03
     requirements: [AUTH-006]
-    title: Verification codes enforce attempt limits and expiry
+    title: "Verification codes enforce attempt limits and expiry"
     protected: true
   - id: M03-T005
     module: M03
     requirements: [ID-006]
-    title: Registering an existing number is indistinguishable from a new one
+    title: "Registering an existing number is indistinguishable from a new one"
     protected: true
   - id: M03-T006
     module: M03
     requirements: [SEC-PWD-005, ID-006]
-    title: Login succeeds; unknown, wrong and malformed identifiers fail identically
+    title: "Login succeeds; unknown, wrong and malformed identifiers fail identically"
     protected: true
   - id: M03-T007
     module: M03
     requirements: [AUTH-007]
-    title: Repeated failures lock the account temporarily without revealing it
+    title: "Repeated failures lock the account temporarily without revealing it"
     protected: true
   - id: M03-T008
     module: M03
     requirements: [SEC-009]
-    title: Login is rate limited per identifier with Retry-After
+    title: "Login is rate limited per identifier with Retry-After"
     protected: true
   - id: M03-T009
     module: M03
     requirements: [SEC-009]
-    title: Registration is rate limited per client IP
+    title: "Registration is rate limited per client IP"
     protected: true
   - id: M03-T010
     module: M03
     requirements: [SEC-PWD-003, SEC-PWD-004]
-    title: Password policy rejects weak/common passwords; long passwords are never truncated
+    title: "Password policy rejects weak/common passwords; long passwords are never truncated"
     protected: true
   - id: M03-T011
     module: M03
     requirements: [SEC-PWD-006, SEC-PWD-005]
-    title: Password reset codes are one-time, hashed, short-lived and generic
+    title: "Password reset codes are one-time, hashed, short-lived and generic"
     protected: true
   - id: M03-T012
     module: M03
     requirements: [SEC-014]
-    title: Password reset revokes every session
+    title: "Password reset revokes every session"
     protected: true
   - id: M03-T013
     module: M03
     requirements: [SEC-014]
-    title: Password change revokes other sessions and issues a fresh one
+    title: "Password change revokes other sessions and issues a fresh one"
     protected: true
   - id: M03-T014
     module: M03
     requirements: [SEC-010]
-    title: Auth events are audited without passwords, codes, tokens or hashes
+    title: "Auth events are audited without passwords, codes, tokens or hashes"
     protected: true
   - id: M03-T015
     module: M03
     requirements: [AUTH-001]
-    title: Logout revokes the session server-side
+    title: "Logout revokes the session server-side"
     protected: true
   - id: M03-T016
     module: M03
     requirements: [SEC-WEB-003]
-    title: CORS allows only approved origins; cross-site POSTs are blocked
+    title: "CORS allows only approved origins; cross-site POSTs are blocked"
     protected: true
   - id: M03-T017
     module: M03
     requirements: [ID-001, SEC-INV-007]
-    title: Application credentials cannot rewrite identity columns or delete users/history
+    title: "Application credentials cannot rewrite identity columns or delete users/history"
     protected: true
   - id: M03-T018
     module: M03
     requirements: [ID-002]
-    title: Email is a secondary identifier usable only after verification
+    title: "Email is a secondary identifier usable only after verification"
     protected: true
   - id: M03-T019
     module: M03
     requirements: [AUTH-001]
-    title: Swahili web registration flow works end to end and requires CSRF tokens
+    title: "Swahili web registration flow works end to end and requires CSRF tokens"
     protected: false
   - id: M03-T020
     module: M03
     requirements: [SEC-WEB-002]
-    title: Sessions expire on idle timeout and absolute lifetime
+    title: "Sessions expire on idle timeout and absolute lifetime"
     protected: true
   - id: M03-T021
     module: M03
     requirements: [AUTH-006]
-    title: Pending accounts need verification; only the correct password reveals that
+    title: "Pending accounts need verification; only the correct password reveals that"
     protected: true
   - id: M03-T022
     module: M03
     requirements: [ID-001]
-    title: Profile API never exposes the internal id or password hash
+    title: "Profile API never exposes the internal id or password hash"
     protected: true
   - id: M03-T023
     module: M03
     requirements: [AUTH-007, DEV-001]
-    title: Module gate refuses modules without an approved Design Ready note
+    title: "Module gate refuses modules without an approved Design Ready note"
     protected: true
   - id: M03-T024
     module: M03
     requirements: [SEC-010]
-    title: Development SMS inbox is unavailable outside development/test
+    title: "Development SMS inbox is unavailable outside development/test"
     protected: true
   - id: M03-T025
     module: M03
     requirements: [ID-006]
-    title: Abandoned unverified sign-ups can be replaced by the real owner
+    title: "Abandoned unverified sign-ups can be replaced by the real owner"
     protected: false
   - id: M04-T001
     module: M04
     requirements: [SEC-MFA-004, V13-SEC-002]
-    title: TOTP matches RFC 6238 and a used code cannot be replayed
+    title: "TOTP matches RFC 6238 and a used code cannot be replayed"
     protected: true
   - id: M04-T002
     module: M04
     requirements: [SEC-MFA-004, ID-010]
-    title: TOTP enrolment encrypts the secret, issues recovery codes and resets trust
+    title: "TOTP enrolment encrypts the secret, issues recovery codes and resets trust"
     protected: true
   - id: M04-T003
     module: M04
     requirements: [AUTH-004, ID-004]
-    title: MFA login challenge is bound, attempt-limited, single-use and expires
+    title: "MFA login challenge is bound, attempt-limited, single-use and expires"
     protected: true
   - id: M04-T004
     module: M04
     requirements: [SEC-MFA-004]
-    title: Recovery codes are stored hashed and work once
+    title: "Recovery codes are stored hashed and work once"
     protected: true
   - id: M04-T005
     module: M04
     requirements: [SEC-MFA-002, AUTH-008]
-    title: Step-up grants are bound to action and session, <=300 s and single-use
+    title: "Step-up grants are bound to action and session, <=300 s and single-use"
     protected: true
   - id: M04-T006
     module: M04
     requirements: [SEC-MFA-002]
-    title: Disabling MFA needs step-up with the TOTP factor
+    title: "Disabling MFA needs step-up with the TOTP factor"
     protected: true
   - id: M04-T007
     module: M04
     requirements: [AUTH-004, AUTH-005, AUTH-009, SEC-002]
-    title: Sessions are listed safely and revocation is immediate
+    title: "Sessions are listed safely and revocation is immediate"
     protected: true
   - id: M04-T008
     module: M04
     requirements: [ID-005, ID-008, ID-010, SEC-MFA-002]
-    title: Phone change needs step-up and a code sent to the new number
+    title: "Phone change needs step-up and a code sent to the new number"
     protected: true
   - id: M04-T009
     module: M04
     requirements: [ID-004, ID-005]
-    title: OTPs are bound to purpose, challenge and destination
+    title: "OTPs are bound to purpose, challenge and destination"
     protected: true
   - id: M04-T010
     module: M04
     requirements: [ID-008]
-    title: Password reset of an MFA account needs the second factor, not SMS alone
+    title: "Password reset of an MFA account needs the second factor, not SMS alone"
     protected: true
   - id: M04-T011
     module: M04
     requirements: [ID-011]
-    title: SMS pumping is limited per destination, client and globally
+    title: "SMS pumping is limited per destination, client and globally"
     protected: true
   - id: M04-T012
     module: M04
     requirements: [ID-012]
-    title: Passwords, OTPs, TOTP secrets, recovery codes and tokens never reach logs
+    title: "Passwords, OTPs, TOTP secrets, recovery codes and tokens never reach logs"
     protected: true
   - id: M04-T013
     module: M04
     requirements: [AUTH-008, AUTH-005, ID-007]
-    title: Roles cannot be self-assigned; grants need admin role, MFA session and step-up
+    title: "Roles cannot be self-assigned; grants need admin role, MFA session and step-up"
     protected: true
   - id: M04-T014
     module: M04
     requirements: [SEC-MFA-004, ID-007]
-    title: Privileged roles require TOTP; admins cannot drop MFA; aal1 sessions blocked
+    title: "Privileged roles require TOTP; admins cannot drop MFA; aal1 sessions blocked"
     protected: true
   - id: M04-T015
     module: M04
     requirements: [SEC-IR-003]
-    title: Responders can suspend, reinstate, sign out users and suspend payments, all audited
+    title: "Responders can suspend, reinstate, sign out users and suspend payments, all audited"
     protected: true
   - id: M04-T016
     module: M04
     requirements: [V13-SEC-002]
-    title: Event replay guard enforces timestamp window and unique event ids
+    title: "Event replay guard enforces timestamp window and unique event ids"
     protected: true
   - id: M04-T017
     module: M04
     requirements: [SEC-IR-003]
-    title: Operator CLI bootstraps the first Super Admin safely and supports break-glass actions
+    title: "Operator CLI bootstraps the first Super Admin safely and supports break-glass actions"
     protected: true
   - id: M04-T018
     module: M04
     requirements: [AUTH-009]
-    title: Role revocation invalidates the affected sessions immediately
+    title: "Role revocation invalidates the affected sessions immediately"
     protected: true
   - id: M04-T019
     module: M04
     requirements: [SEC-MFA-004]
-    title: Swahili web pages enrol MFA with QR code and complete MFA login
+    title: "Swahili web pages enrol MFA with QR code and complete MFA login"
     protected: false
   - id: M04-T020
     module: M04
     requirements: [SEC-MFA-002]
-    title: Changing a verified email needs step-up
+    title: "Changing a verified email needs step-up"
     protected: true
   - id: M04-T021
     module: M04
     requirements: [SEC-MFA-002, SEC-009]
-    title: Unknown step-up actions are rejected and step-up is rate limited
+    title: "Unknown step-up actions are rejected and step-up is rate limited"
     protected: true
   - id: M05-T001
     module: M05
     requirements: [AUTH-001, SEC-003]
-    title: Authorization is deny-by-default for every permission
+    title: "Authorization is deny-by-default for every permission"
     protected: true
   - id: M05-T002
     module: M05
     requirements: [AUTH-002]
-    title: Platform and shop permission scopes are separate
+    title: "Platform and shop permission scopes are separate"
     protected: true
   - id: M05-T003
     module: M05
     requirements: [AUTH-003, SEC-INV-002]
-    title: Every admin route rejects anonymous and plain users with generic errors
+    title: "Every admin route rejects anonymous and plain users with generic errors"
     protected: true
   - id: M05-T004
     module: M05
     requirements: [AUTH-014, AUTH-016, AUTH-012]
-    title: Role-permission changes use optimistic policyVersion concurrency
+    title: "Role-permission changes use optimistic policyVersion concurrency"
     protected: true
   - id: M05-T005
     module: M05
     requirements: [AUTH-015, AUTH-017]
-    title: Permission changes fan out to holders' authzVersion, invalidate cache and are audited
+    title: "Permission changes fan out to holders' authzVersion, invalidate cache and are audited"
     protected: true
   - id: M05-T006
     module: M05
     requirements: [V13-SEC-003]
-    title: High-risk permissions bypass the cache and errors fail closed
+    title: "High-risk permissions bypass the cache and errors fail closed"
     protected: true
   - id: M05-T007
     module: M05
     requirements: [ACT-009, AUTH-006, ACT-003]
-    title: Segregation of duties blocks conflicting roles; compatible roles combine
+    title: "Segregation of duties blocks conflicting roles; compatible roles combine"
     protected: true
   - id: M05-T008
     module: M05
     requirements: [AUTH-010, AUTH-011]
-    title: Concurrent duplicate role grants leave exactly one active assignment
+    title: "Concurrent duplicate role grants leave exactly one active assignment"
     protected: true
   - id: M05-T009
     module: M05
     requirements: [ACT-001, ACT-004, V13-REQ-007, ACT-002, ACT-006]
-    title: Capabilities are separate from permissions and never imply privilege
+    title: "Capabilities are separate from permissions and never imply privilege"
     protected: true
   - id: M05-T010
     module: M05
     requirements: [ACT-007]
-    title: Capability status changes are authorized and audited
+    title: "Capability status changes are authorized and audited"
     protected: true
   - id: M05-T011
     module: M05
     requirements: [AUTH-013, SEC-004]
-    title: Privileged mutations require explicit CSRF token and allowed Origin
+    title: "Privileged mutations require explicit CSRF token and allowed Origin"
     protected: true
   - id: M05-T012
     module: M05
     requirements: [SEC-AUD-004]
-    title: Audit export needs permission and step-up; purge is DBA-only and retention-bound
+    title: "Audit export needs permission and step-up; purge is DBA-only and retention-bound"
     protected: true
   - id: M05-T013
     module: M05
     requirements: [SEC-COM-004]
-    title: Closed accounts are anonymized after retention unless under legal hold
+    title: "Closed accounts are anonymized after retention unless under legal hold"
     protected: true
   - id: M05-T014
     module: M05
     requirements: [ID-009]
-    title: Dormant accounts are never reset through a possibly recycled phone number
+    title: "Dormant accounts are never reset through a possibly recycled phone number"
     protected: true
   - id: M05-T015
     module: M05
     requirements: [AUTH-012]
-    title: RBAC contract is stable and Super Admin cannot be locked out
+    title: "RBAC contract is stable and Super Admin cannot be locked out"
     protected: true
   - id: M05-T016
     module: M05
     requirements: [ACT-010]
-    title: Published permission codes remain backward compatible
+    title: "Published permission codes remain backward compatible"
     protected: true
   - id: M05-T017
     module: M05
     requirements: [SEC-INV-002, AUTH-004]
-    title: Unknown targets give a generic 404
+    title: "Unknown targets give a generic 404"
     protected: true
   - id: M06-T001
     module: M06
     requirements: [NFR-004]
-    title: Navigation adapts to visitors, signed-in users and admins; phone menu without JS
+    title: "Navigation adapts to visitors, signed-in users and admins; phone menu without JS"
     protected: true
   - id: M06-T002
     module: M06
     requirements: [SEC-007]
-    title: Strict CSP without unsafe-inline; no inline scripts, styles or handlers on any page
+    title: "Strict CSP without unsafe-inline; no inline scripts, styles or handlers on any page"
     protected: true
   - id: M06-T003
     module: M06
     requirements: [SEC-007]
-    title: User-supplied content is HTML-encoded everywhere it is shown
+    title: "User-supplied content is HTML-encoded everywhere it is shown"
     protected: true
   - id: M06-T004
     module: M06
     requirements: [SEC-008, SEC-WEB-004, SEC-INV-003]
-    title: CSRF token and Origin/Referer are enforced as independent controls
+    title: "CSRF token and Origin/Referer are enforced as independent controls"
     protected: true
   - id: M06-T005
     module: M06
     requirements: [SEC-WEB-004]
-    title: CSRF token endpoint issues an HttpOnly, Secure, SameSite=Strict double-submit token
+    title: "CSRF token endpoint issues an HttpOnly, Secure, SameSite=Strict double-submit token"
     protected: true
   - id: M06-T006
     module: M06
     requirements: [SEC-007]
-    title: Static assets are versioned, immutable-cached and served with nosniff
+    title: "Static assets are versioned, immutable-cached and served with nosniff"
     protected: false
   - id: M06-T007
     module: M06
     requirements: [NFR-M09]
-    title: Application log retention is configured for 90 days
+    title: "Application log retention is configured for 90 days"
     protected: false
   - id: M06-T008
     module: M06
     requirements: [SEC-SDLC-002]
-    title: Secret scanning and dependency auditing are part of the release controls
+    title: "Secret scanning and dependency auditing are part of the release controls"
     protected: true
   - id: M06-T009
     module: M06
     requirements: [SEC-COM-005, SEC-COM-007, CAP-CHAT-001]
-    title: Breach, cross-border and gated-feature procedures are documented
+    title: "Breach, cross-border and gated-feature procedures are documented"
     protected: false
   - id: M06-T010
     module: M06
     requirements: [NFR-M07, NFR-004]
-    title: Key pages render without overflow at phone and desktop widths in a real browser
+    title: "Key pages render without overflow at phone and desktop widths in a real browser"
+    protected: false
+  - id: M07-T001
+    module: M07
+    requirements: [SHOP-001, SHOP-002, SHOP-003, BR-001, BR-004]
+    title: "Any user opens several shops, becomes OWNER, keeps buyer capability; history recorded"
+    protected: true
+  - id: M07-T002
+    module: M07
+    requirements: [BR-013]
+    title: "Clients cannot set owner, status or role; slug rules enforced"
+    protected: true
+  - id: M07-T003
+    module: M07
+    requirements: [BR-003, BR-004]
+    title: "Database enforces exactly one owner consistent with shops.owner_user_id"
+    protected: true
+  - id: M07-T004
+    module: M07
+    requirements: [SHOP-004, BR-006]
+    title: "Manager/staff rules; nobody can assign OWNER through membership"
+    protected: true
+  - id: M07-T005
+    module: M07
+    requirements: [BR-008, SHOP-002]
+    title: "Shop permissions come from shop_users; removal takes effect immediately"
+    protected: true
+  - id: M07-T006
+    module: M07
+    requirements: [BR-008, BR-007]
+    title: "Non-members and other shops' owners cannot probe or act (generic 404)"
+    protected: true
+  - id: M07-T007
+    module: M07
+    requirements: [BR-005, SHOP-002]
+    title: "Ownership transfer needs MFA step-up, targets a member, is audited"
+    protected: true
+  - id: M07-T008
+    module: M07
+    requirements: [BR-005]
+    title: "Ownership transfer is atomic: a failure leaves nothing changed"
+    protected: true
+  - id: M07-T009
+    module: M07
+    requirements: [SHOP-006]
+    title: "Verification/suspension lifecycle with valid transitions and status history"
+    protected: true
+  - id: M07-T010
+    module: M07
+    requirements: [CAP-VER-001]
+    title: "Shop verification never grants platform privilege"
+    protected: true
+  - id: M07-T011
+    module: M07
+    requirements: [SHOP-007, SHOP-008, BR-009]
+    title: "Shop page shows admin links only to members; unverified shops hidden"
+    protected: true
+  - id: M07-T012
+    module: M07
+    requirements: [BR-013, BR-015]
+    title: "No request schema accepts payment, ownership or total state from clients"
+    protected: true
+  - id: M07-T013
+    module: M07
+    requirements: [SHOP-001, SHOP-004]
+    title: "Swahili web flow: open a shop and add staff"
     protected: false
