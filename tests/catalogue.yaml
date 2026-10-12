@@ -1,0 +1,75 @@
+# Authoritative Test Catalogue (DEV-004)
+# Every test ID used in tests/ must appear here exactly once, and every entry
+# here must be implemented by exactly one test. `protected: true` marks controls
+# that are always re-run in full regression (DEV-005).
+tests:
+  - id: M01-T001
+    module: M01
+    requirements: [NFR-005]
+    title: Configuration is loaded from environment variables with KAR_ prefix
+    protected: true
+  - id: M01-T002
+    module: M01
+    requirements: [NFR-005, SEC-KEY-002]
+    title: Production refuses default or short secret key
+    protected: true
+  - id: M01-T003
+    module: M01
+    requirements: [NFR-005]
+    title: Production refuses debug mode, non-MariaDB database and wildcard hosts
+    protected: true
+  - id: M01-T004
+    module: M01
+    requirements: [NFR-003]
+    title: Liveness and readiness probes respond
+    protected: false
+  - id: M01-T005
+    module: M01
+    requirements: [NFR-003]
+    title: Unhandled errors return a controlled 500 without internal details
+    protected: true
+  - id: M01-T006
+    module: M01
+    requirements: [SEC-007]
+    title: Security headers and request ID are present on every response
+    protected: true
+  - id: M01-T007
+    module: M01
+    requirements: [NFR-008]
+    title: Sensitive fields are redacted in structured logs
+    protected: true
+  - id: M01-T008
+    module: M01
+    requirements: [NFR-005]
+    title: System info endpoint does not expose secrets or database URL
+    protected: true
+  - id: M01-T009
+    module: M01
+    requirements: [DEV-004]
+    title: Test catalogue IDs are unique and match implemented tests exactly
+    protected: true
+  - id: M01-T010
+    module: M01
+    requirements: [DEV-006]
+    title: Evidence bundle records command, UTC time, versions, exit code and hashes
+    protected: false
+  - id: M01-T011
+    module: M01
+    requirements: [NFR-005]
+    title: No hard-coded secrets in application source
+    protected: true
+  - id: M01-T012
+    module: M01
+    requirements: [NFR-004]
+    title: Status page renders all 20 modules and escapes content
+    protected: false
+  - id: M01-T013
+    module: M01
+    requirements: [NFR-005]
+    title: API docs are disabled in production-like environments
+    protected: true
+  - id: M01-T014
+    module: M01
+    requirements: [NFR-005]
+    title: Untrusted Host header is rejected
+    protected: true
