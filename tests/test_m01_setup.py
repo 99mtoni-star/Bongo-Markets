@@ -158,7 +158,7 @@ def test_no_hardcoded_secrets():
 
 @pytest.mark.tid("M01-T012")
 def test_status_page(client):
-    r = client.get("/")
+    r = client.get("/hali")
     assert r.status_code == 200 and "text/html" in r.headers["content-type"]
     for i in range(1, 21):
         assert f"M{i:02d}" in r.text

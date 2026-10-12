@@ -24,7 +24,7 @@ from app.auth.deps import (
 from app.auth.identifiers import mask_phone
 from app.auth.notify import DevNotifier
 from app.auth.service import RESET_ACCEPTED, AuthError, AuthService, SessionContext
-from app.web.layout import alert, field, page
+from app.web.layout import Nav, alert, field, page
 
 router = APIRouter(include_in_schema=False)
 
@@ -37,11 +37,25 @@ NOTICES = {
 }
 
 
+def nav_for(request: Request, ctx: SessionContext | None) -> Nav:
+    nav = Nav(user_name=ctx.user.full_name if ctx else None, csrf=csrf_token(request), current=request.url.path)
+    if ctx:
+        from sqlalchemy import text as sql
+        from sqlalchemy.orm import object_session
+
+        db = object_session(ctx.user)
+        if db is not None:
+            nav.is_admin = db.execute(sql("SELECT 1 FROM bm.user_platform_roles WHERE user_id = :u "
+                                          "AND revoked_at IS NULL LIMIT 1"), {"u": ctx.user.id}).first() is not None
+            if db.execute(sql("SELECT to_regclass('bm.shop_users') IS NOT NULL")).scalar_one():
+                nav.has_shops = db.execute(sql("SELECT 1 FROM bm.shop_users WHERE user_id = :u "
+                                               "AND removed_at IS NULL LIMIT 1"), {"u": ctx.user.id}).first() is not None
+    return nav
+
+
 def _html(request: Request, title: str, body: str, *, ctx: SessionContext | None = None,
           status: int = 200) -> HTMLResponse:
-    csrf = csrf_token(request)
-    resp = HTMLResponse(page(title, body, user_name=ctx.user.full_name if ctx else None, csrf=csrf),
-                        status_code=status)
+    resp = HTMLResponse(page(title, body, nav=nav_for(request, ctx)), status_code=status)
     ensure_csrf_cookie(request, resp)
     resp.headers["Cache-Control"] = "no-store"
     return resp
@@ -107,7 +121,7 @@ def _verify_form(request: Request, vid: str, error: str | None = None, info: str
 <button class="primary" type="submit">Thibitisha</button></form>
 <form method="post" action="/thibitisha/tuma-tena" class="links">{_csrf_input(request)}
 <input type="hidden" name="v" value="{escape(vid)}"><span>Hukupata SMS?</span>
-<button type="submit" style="background:none;border:0;color:var(--brand);font:inherit;cursor:pointer;padding:0">
+<button type="submit" class="linkbtn">
 Tuma tena</button></form></div>"""
 
 
@@ -227,7 +241,7 @@ def _account_body(request: Request, ctx: SessionContext, notice: str = "", error
 <dt>Hali</dt><dd>Akaunti hai</dd>
 <dt>MFA</dt><dd>{"Imewashwa ✓" if u.totp_enabled_at else "Haijawashwa"}</dd></dl>
 <div class="links"><a href="/akaunti/usalama">Usalama wa akaunti: MFA, vifaa, namba ya simu →</a></div></div>
-<div class="card"><h1 style="font-size:20px">Badilisha nenosiri</h1>
+<div class="card"><h1 class="sm">Badilisha nenosiri</h1>
 <p class="sub">Ukibadilisha, vifaa vingine vyote vitatolewa kwenye akaunti.</p>{alert(error)}
 <form method="post" action="/akaunti/nenosiri">{_csrf_input(request)}
 {field("current_password", "Nenosiri la sasa", type_="password", extra='autocomplete="current-password" required')}

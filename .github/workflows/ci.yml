@@ -30,6 +30,10 @@ jobs:
           docker restart ${{ job.services.postgres.id }}
           for i in $(seq 1 30); do pg_isready -h 127.0.0.1 && break; sleep 1; done
       - run: pip install -r requirements-dev.txt
+      - name: Secret scanning (SEC-SDLC-002)
+        run: python scripts/scan_secrets.py
+      - name: Dependency vulnerability scan (SEC-SDLC-002)
+        run: pip install pip-audit && pip-audit -r requirements.txt --strict
       - name: Lint
         run: python -m ruff check .
       - name: Test catalogue (DEV-004)

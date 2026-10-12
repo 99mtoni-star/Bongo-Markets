@@ -32,7 +32,7 @@ def rbac_matrix(request: Request, ctx: SessionContext | None = Depends(optional_
         head = "".join(f"<th>{escape(r)}</th>" for r in names)
         rows = []
         for p in (p for p in cat["permissions"] if p["scope"] == scope):
-            cells = "".join(f"<td style='text-align:center'>{'✓' if p['code'] in roles[r] else ''}</td>"
+            cells = "".join(f"<td class='c'>{'✓' if p['code'] in roles[r] else ''}</td>"
                             for r in names)
             risk = " <span class='pill design'>hatari</span>" if p["high_risk"] else ""
             rows.append(f"<tr><td><code>{escape(p['code'])}</code>{risk}"
@@ -42,7 +42,7 @@ def rbac_matrix(request: Request, ctx: SessionContext | None = Depends(optional_
     body = f"""<div class="hero"><h1>Majukumu na ruhusa</h1>
 <p>Toleo la sera: <b>{cat['policy_version']}</b> · Kila ombi linakaguliwa na server; kisichoruhusiwa wazi
 kimekatazwa.</p></div>
-<h2 style="font-size:18px">Majukumu ya jukwaa (platform)</h2>{matrix("PLATFORM", cat["platform_roles"])}
-<h2 style="font-size:18px;margin-top:24px">Majukumu ya duka (shop)</h2>{matrix("SHOP", cat["shop_roles"])}
+<h2 class="sec">Majukumu ya jukwaa (platform)</h2>{matrix("PLATFORM", cat["platform_roles"])}
+<h2 class="sec">Majukumu ya duka (shop)</h2>{matrix("SHOP", cat["shop_roles"])}
 <footer>Mabadiliko hufanywa kupitia API yenye MFA, step-up, CSRF na If-Match (docs/api/rbac.md).</footer>"""
     return _html(request, "Majukumu", body, ctx=ctx)

@@ -1,0 +1,14 @@
+# NFR-M09: application logs kept 90 days (longer only where security/legal policy requires,
+# e.g. audit records live in the database under their own retention schedule).
+/var/log/bongo-markets/*.log {
+    daily
+    rotate 90
+    maxage 90
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    create 0640 bongo adm
+    sharedscripts
+}

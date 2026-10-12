@@ -493,3 +493,53 @@ tests:
     requirements: [SEC-INV-002, AUTH-004]
     title: Unknown targets give a generic 404
     protected: true
+  - id: M06-T001
+    module: M06
+    requirements: [NFR-004]
+    title: Navigation adapts to visitors, signed-in users and admins; phone menu without JS
+    protected: true
+  - id: M06-T002
+    module: M06
+    requirements: [SEC-007]
+    title: Strict CSP without unsafe-inline; no inline scripts, styles or handlers on any page
+    protected: true
+  - id: M06-T003
+    module: M06
+    requirements: [SEC-007]
+    title: User-supplied content is HTML-encoded everywhere it is shown
+    protected: true
+  - id: M06-T004
+    module: M06
+    requirements: [SEC-008, SEC-WEB-004, SEC-INV-003]
+    title: CSRF token and Origin/Referer are enforced as independent controls
+    protected: true
+  - id: M06-T005
+    module: M06
+    requirements: [SEC-WEB-004]
+    title: CSRF token endpoint issues an HttpOnly, Secure, SameSite=Strict double-submit token
+    protected: true
+  - id: M06-T006
+    module: M06
+    requirements: [SEC-007]
+    title: Static assets are versioned, immutable-cached and served with nosniff
+    protected: false
+  - id: M06-T007
+    module: M06
+    requirements: [NFR-M09]
+    title: Application log retention is configured for 90 days
+    protected: false
+  - id: M06-T008
+    module: M06
+    requirements: [SEC-SDLC-002]
+    title: Secret scanning and dependency auditing are part of the release controls
+    protected: true
+  - id: M06-T009
+    module: M06
+    requirements: [SEC-COM-005, SEC-COM-007, CAP-CHAT-001]
+    title: Breach, cross-border and gated-feature procedures are documented
+    protected: false
+  - id: M06-T010
+    module: M06
+    requirements: [NFR-M07, NFR-004]
+    title: Key pages render without overflow at phone and desktop widths in a real browser
+    protected: false

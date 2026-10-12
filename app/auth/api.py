@@ -214,3 +214,15 @@ def email_verify(body: VerifyIn, ctx: SessionContext = Depends(require_session),
     except AuthError as exc:
         return error_response(exc)
     return {"message": "Barua pepe imethibitishwa."}
+
+
+@router.get("/csrf")
+def csrf(request: Request):
+    """Issue the double-submit CSRF token for JSON clients (the cookie itself stays HttpOnly)."""
+    from app.auth.deps import csrf_token, ensure_csrf_cookie
+
+    token = csrf_token(request)
+    response = JSONResponse({"csrf_token": token})
+    ensure_csrf_cookie(request, response)
+    response.headers["Cache-Control"] = "no-store"
+    return response

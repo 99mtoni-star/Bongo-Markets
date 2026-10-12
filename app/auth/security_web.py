@@ -71,7 +71,7 @@ bila simu yako.</p>{err("mfa")}
     rows = []
     for s in svc.list_sessions(ctx):
         action = "<b>Kifaa hiki</b>" if s["current"] else (
-            f'<form method="post" action="/akaunti/usalama/vifaa/{escape(s["id"])}/toa" style="margin:0">'
+            f'<form method="post" action="/akaunti/usalama/vifaa/{escape(s["id"])}/toa" class="inline">'
             f'{_csrf_input(request)}<button type="submit">Toa</button></form>')
         rows.append(f"<tr><td>{escape(_device(s['user_agent']))}{' · MFA ✓' if s['mfa'] else ''}"
                     f"<small>Kilianza {escape(_fmt(s['created_at']))}</small></td><td>{action}</td></tr>")
@@ -86,10 +86,10 @@ bila simu yako.</p>{err("mfa")}
 
     return f"""<div class="hero"><h1>Usalama wa akaunti</h1><p><a href="/akaunti">← Rudi kwenye akaunti</a></p></div>
 {alert(notice, "ok")}
-<div class="card"><h1 style="font-size:20px">Uthibitisho wa hatua mbili (MFA)</h1>{mfa}</div>
-<div class="card"><h1 style="font-size:20px">Vifaa vilivyoingia</h1>
+<div class="card"><h1 class="sm">Uthibitisho wa hatua mbili (MFA)</h1>{mfa}</div>
+<div class="card"><h1 class="sm">Vifaa vilivyoingia</h1>
 <p class="sub">Ukiona kifaa usichokijua, kitoe mara moja kisha ubadilishe nenosiri.</p>{err("vifaa")}{devices}</div>
-<div class="card"><h1 style="font-size:20px">Badilisha namba ya simu</h1>
+<div class="card"><h1 class="sm">Badilisha namba ya simu</h1>
 <p class="sub">Kwa usalama, tutakuomba nenosiri{' na namba ya MFA' if has_totp else ''} kwanza.</p>{phone}</div>"""
 
 
@@ -125,9 +125,9 @@ def _enroll_body(request: Request, qr: str, secret: str, error: str | None = Non
     return f"""<div class="card"><h1>Washa MFA</h1>
 <p class="sub">1. Pakua programu ya uthibitishaji (Google Authenticator, Microsoft Authenticator au Authy).<br>
 2. Scan picha hii ya QR kwa programu hiyo.<br>3. Andika namba ya tarakimu 6 inayoonekana.</p>
-<div style="background:#fff;border-radius:8px;padding:8px;width:max-content;margin:0 auto">{qr}</div>
-<p style="text-align:center;font-size:13px;color:var(--muted)">Huwezi kuscan? Andika ufunguo huu:<br>
-<code style="font-size:15px;letter-spacing:.05em">{escape(grouped)}</code></p>{alert(error)}
+<div class="qr">{qr}</div>
+<p class="hint c">Huwezi kuscan? Andika ufunguo huu:<br>
+<code class="secret">{escape(grouped)}</code></p>{alert(error)}
 <form method="post" action="/akaunti/usalama/mfa/thibitisha">{_csrf_input(request)}
 {field("code", "Namba kutoka kwenye programu", extra='class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required')}
 <button class="primary" type="submit">Thibitisha na uwashe</button></form></div>"""
@@ -159,10 +159,9 @@ def mfa_confirm(request: Request, csrf: str = Form(""), code: str = Form(""),
     body = f"""<div class="card"><h1>MFA imewashwa ✅</h1>
 <p class="sub">Hizi ni <b>namba zako za dharura</b>. Kila moja inatumika mara moja tu, kama umepoteza simu.
 Ziandike au zichapishe, uziweke mahali salama. Hazitaonyeshwa tena.</p>
-<ol style="columns:2;font-size:17px;line-height:1.9">{items}</ol>
+<ol class="codes">{items}</ol>
 <p class="sub">Vifaa vingine vyote vimetolewa kwenye akaunti kwa usalama.</p>
-<a class="primary" href="/akaunti/usalama" style="display:block;text-align:center;padding:12px;border-radius:8px;
-background:var(--brand);color:var(--brand-ink);text-decoration:none;font-weight:700">Nimezihifadhi</a></div>"""
+<a class="btn" href="/akaunti/usalama">Nimezihifadhi</a></div>"""
     resp = _html(request, "Namba za dharura", body, ctx=ctx)
     resp.headers["Cache-Control"] = "no-store"
     return resp
