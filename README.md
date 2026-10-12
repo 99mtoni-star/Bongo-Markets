@@ -17,7 +17,9 @@ python scripts/local_demo.py setup  # once: asks for the "postgres" password, cr
 python scripts/local_demo.py run    # opens http://localhost:8000/soko
 ```
 
-Demo accounts are printed at the end of `setup`. Verification codes and delivery PINs appear at
+Demo accounts are printed at the end of `setup`, including a Super Admin (password + MFA). When the admin is
+asked for an MFA code, run `python scripts/local_demo.py admin-code`. On an existing setup, create the admin with
+`python scripts/local_demo.py admin`. Verification codes and delivery PINs appear at
 http://localhost:8000/dev/sms (development only). Running `setup` again resets the database role passwords;
 restart `run` afterwards.
 

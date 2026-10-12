@@ -3,6 +3,7 @@
 
     python scripts/local_demo.py setup     # once: database, roles, .env, migrations, demo shops
     python scripts/local_demo.py run       # every time: start the website at http://localhost:8000
+    python scripts/local_demo.py admin-code   # current MFA code for the demo admin account
 
 Needs Python 3.11+ and PostgreSQL 15+ installed locally. `setup` asks for the password of the
 PostgreSQL superuser ("postgres") that you chose when installing PostgreSQL. It is used only to
@@ -49,6 +50,9 @@ SELLERS = [
                    "Mayai ya kisasa, trei ya 30")]},
 ]
 BUYER = {"name": "Neema Mollel", "phone": "0754 555 777", "password": "Parachichi-Bora-2029"}
+ADMIN = {"name": "Msimamizi Mkuu", "phone": "0754 100 200", "password": "Simamizi-Imara-2030"}
+PENDING_SHOP = ("Neema Vitenge Arusha", "Arusha", "Vitenge na khanga za kisasa")
+ADMIN_TOTP_FILE = ROOT / ".demo_admin_totp"  # local development only; listed in .gitignore
 
 
 def say(msg: str) -> None:
@@ -139,20 +143,16 @@ def migrate(owner_url: str) -> None:
     say("Majedwali yote yameundwa (migrations).")
 
 
-def seed(owner_url: str) -> None:
-    import psycopg
+def _demo_app():
+    """In-process app + helpers for seeding (no running server needed)."""
     from fastapi.testclient import TestClient
 
     from app.core.config import Settings
     from app.main import create_app
 
-    plain = owner_url.replace("+psycopg", "")
-    with psycopg.connect(plain, autocommit=True) as db:
-        if db.execute("SELECT count(*) FROM bm.shops").fetchone()[0]:
-            say("Maduka ya mfano yapo tayari; sijaongeza mengine.")
-            return
-    app = create_app(Settings(_env_file=str(ENV_FILE)))
-    logging.disable(logging.INFO)  # keep the setup output readable
+    settings = Settings(_env_file=str(ENV_FILE))
+    app = create_app(settings)
+    logging.disable(logging.INFO)  # keep the output readable
     base = "https://testserver"
 
     def client():
@@ -175,6 +175,24 @@ def seed(owner_url: str) -> None:
             sys.exit(f"Uthibitisho wa {person['name']} umeshindwa: {r.text}")
         return c
 
+    def login(person):
+        c = client()
+        r = c.post("/api/v1/auth/login", json={"identifier": person["phone"], "password": person["password"]})
+        return c if r.status_code == 200 and not r.json().get("mfa_required") else None
+
+    return settings, app, TestClient, client, register, login
+
+
+def seed(owner_url: str) -> None:
+    import psycopg
+
+    plain = owner_url.replace("+psycopg", "")
+    with psycopg.connect(plain, autocommit=True) as db:
+        if db.execute("SELECT count(*) FROM bm.shops").fetchone()[0]:
+            say("Maduka ya mfano yapo tayari; sijaongeza mengine.")
+            return
+    _, app, TestClient, client, register, _ = _demo_app()
+
     with TestClient(app):
         for s in SELLERS:
             c = register(s)
@@ -194,6 +212,70 @@ def seed(owner_url: str) -> None:
         say(f"Mnunuzi '{BUYER['name']}' amesajiliwa.")
 
 
+# ---------------------------------------------------------------------------------------------- demo admin
+def totp_now() -> tuple[str, int]:
+    from app.auth.mfa import STEP_SECONDS, totp_at
+
+    if not ADMIN_TOTP_FILE.exists():
+        sys.exit("Admin wa majaribio hajaundwa bado. Endesha:  python scripts/local_demo.py admin")
+    now = time.time()
+    secret = ADMIN_TOTP_FILE.read_text(encoding="utf-8").strip()
+    return totp_at(secret, int(now // STEP_SECONDS)), STEP_SECONDS - int(now % STEP_SECONDS)
+
+
+def create_admin() -> None:
+    """Demo SUPER_ADMIN with password + TOTP MFA (MFA is mandatory for admins, SEC-MFA-004)."""
+    import psycopg
+
+    if not ENV_FILE.exists():
+        sys.exit("Hakuna .env bado. Endesha kwanza:  python scripts/local_demo.py setup")
+    plain = read_env()["BM_MIGRATION_DATABASE_URL"].replace("+psycopg", "")
+    e164 = "+255" + ADMIN["phone"].replace(" ", "")[1:]
+    with psycopg.connect(plain, autocommit=True) as db:
+        exists = db.execute("SELECT 1 FROM bm.users WHERE phone_e164 = %s", (e164,)).fetchone()
+        has_super = db.execute("SELECT 1 FROM bm.user_platform_roles WHERE role_code = 'SUPER_ADMIN' "
+                               "AND revoked_at IS NULL").fetchone()
+    if exists and ADMIN_TOTP_FILE.exists():
+        say("Admin wa majaribio yupo tayari.")
+        return
+    if exists or has_super:
+        sys.exit("Kuna admin au akaunti ya admin tayari isiyo ya script hii; sijabadilisha chochote.")
+    settings, app, TestClient, client, register, login = _demo_app()
+    from app.auth.mfa import STEP_SECONDS, totp_at
+    from scripts.admin_cli import run as admin_cli
+
+    with TestClient(app):
+        c = register(ADMIN)
+        secret = c.post("/api/v1/auth/mfa/totp/setup").json()["secret"]
+        code = totp_at(secret, int(time.time() // STEP_SECONDS))
+        r = c.post("/api/v1/auth/mfa/totp/confirm", json={"code": code})
+        if r.status_code != 200:
+            sys.exit(f"Kuwasha MFA ya admin kumeshindwa: {r.text}")
+        ADMIN_TOTP_FILE.write_text(secret, encoding="utf-8")
+        admin_cli(["bootstrap-super-admin", "--phone", ADMIN["phone"], "--operator", "local_demo"], settings)
+        say(f"Admin '{ADMIN['name']}' ameundwa (Super Admin, MFA imewashwa).")
+        n = login(BUYER)  # one shop waiting for verification, so the admin page has work to show
+        if n is not None and not n.get("/api/v1/shops/mine").json()["shops"]:
+            name, region, desc = PENDING_SHOP
+            n.post("/api/v1/shops", json={"name": name, "region": region, "description": desc})
+            say(f"Duka '{name}' la Neema linasubiri uthibitisho wa admin.")
+    print(f"\n  Siri ya MFA (ukitaka kuiweka kwenye programu ya simu): {secret}")
+
+
+def admin_code(_args) -> None:
+    code, left = totp_now()
+    print(f"\n  Namba ya MFA ya admin: {code[:3]} {code[3:]}   (inafaa kwa sekunde {left} zaidi)\n")
+
+
+def print_accounts() -> None:
+    print("Akaunti za mfano (namba ya simu / nenosiri):")
+    for p in [*SELLERS, BUYER]:
+        role = "muuzaji" if p in SELLERS else "mnunuzi"
+        print(f"  {p['name']:<16} ({role}):  {p['phone']}  /  {p['password']}")
+    print(f"  {ADMIN['name']:<16} (ADMIN):    {ADMIN['phone']}  /  {ADMIN['password']}")
+    print("     Admin akiombwa namba ya MFA, endesha:  python scripts/local_demo.py admin-code\n")
+
+
 def setup(args) -> None:
     print("\nBongo Markets: kuandaa kompyuta yako\n")
     admin_pw = getpass.getpass("  Nenosiri la mtumiaji 'postgres' wa PostgreSQL: ")
@@ -201,12 +283,9 @@ def setup(args) -> None:
     write_env(urls)
     migrate(urls["owner"])
     seed(urls["owner"])
+    create_admin()
     print("\nTayari! Washa website kwa:  python scripts/local_demo.py run\n")
-    print("Akaunti za mfano (namba ya simu / nenosiri):")
-    for p in [*SELLERS, BUYER]:
-        role = "muuzaji" if p in SELLERS else "mnunuzi"
-        print(f"  {p['name']:<16} ({role}):  {p['phone']}  /  {p['password']}")
-    print()
+    print_accounts()
 
 
 # ---------------------------------------------------------------------------------------------- run
@@ -231,8 +310,19 @@ def main() -> None:
     s.add_argument("--port", type=int, default=5432)
     r = sub.add_parser("run", help="start the website")
     r.add_argument("--web-port", type=int, default=8000)
+    sub.add_parser("admin", help="create the demo admin account (password + MFA)")
+    sub.add_parser("admin-code", help="show the demo admin's current MFA code")
     args = ap.parse_args()
-    setup(args) if args.cmd == "setup" else run(args)
+    if args.cmd == "setup":
+        setup(args)
+    elif args.cmd == "run":
+        run(args)
+    elif args.cmd == "admin":
+        create_admin()
+        print()
+        print_accounts()
+    else:
+        admin_code(args)
 
 
 if __name__ == "__main__":

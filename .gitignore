@@ -9,3 +9,4 @@ evidence/
 !evidence/.gitkeep
 backups/
 media/
+.demo_admin_totp
