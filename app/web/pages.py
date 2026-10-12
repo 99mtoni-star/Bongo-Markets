@@ -40,7 +40,7 @@ td small{display:block;color:var(--muted)}
 .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;color:#fff;white-space:nowrap}
 .todo{background:var(--todo)}.design{background:var(--design)}.built{background:var(--built)}.closed{background:var(--closed)}
 footer{color:var(--muted);font-size:13px;padding:20px 0 40px}
-@media (max-width:600px){.hide-sm{display:none}}
+@media (max-width:600px){.hide-sm{display:none}.pill{white-space:normal;border-radius:10px}th,td{padding:10px 8px}}
 """
 
 
