@@ -60,7 +60,7 @@ def page(title: str, body: str, *, user_name: str | None = None, csrf: str = "",
 <title>{escape(title)} – Bongo Markets</title>
 <link rel="stylesheet" href="/static/app.css?v={CSS_VERSION}"></head><body>
 <a class="skip" href="#yaliyomo">Ruka hadi maudhui</a>
-<header class="top"><div class="wrap bar"><a class="brand" href="/">Bongo Markets</a>
+<header class="top"><div class="wrap topbar"><a class="brand" href="/">Bongo Markets</a>
 {_nav_html(nav, "main")}
 <details class="menu"><summary aria-label="Fungua menyu">☰ Menyu</summary>{_nav_html(nav, "")}</details>
 </div></header>

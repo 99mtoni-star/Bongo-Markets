@@ -18,8 +18,6 @@ border-radius:8px;padding:4px 10px;font:inherit;cursor:pointer}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
 .stat b{display:block;font-size:26px}.stat span{color:var(--muted);font-size:14px}
-.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;background:var(--brand)}
 table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:15px}
 th{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
@@ -45,18 +43,18 @@ footer{color:var(--muted);font-size:13px;padding:20px 0 40px}
 @media (max-width:600px){.hide-sm{display:none}.pill{white-space:normal;border-radius:10px}th,td{padding:10px 8px}
 .card{margin:16px 0;padding:18px}}
 /* M06 additions: navigation, utilities (no inline styles anywhere; CSP has no 'unsafe-inline') */
-header.top .bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+header.top .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 nav.main{display:flex;gap:18px;align-items:center;font-size:15px}
 nav.main a[aria-current="page"]{text-decoration:underline;text-underline-offset:4px}
 details.menu{display:none}
 details.menu summary{list-style:none;cursor:pointer;border:1px solid var(--brand-ink);border-radius:8px;padding:4px 10px}
 details.menu summary::-webkit-details-marker{display:none}
 details.menu nav{position:absolute;right:16px;top:58px;background:var(--card);color:var(--ink);border:1px solid var(--line);
-border-radius:10px;padding:8px;display:flex;flex-direction:column;min-width:200px;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:stretch;min-width:200px;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.12)}
 details.menu nav a,details.menu nav button{color:var(--ink);padding:10px 12px;border-radius:8px;text-align:left}
 details.menu nav a:hover{background:var(--bg)}
 details.menu nav button{border:0;background:none;font:inherit;cursor:pointer;width:100%}
-@media (max-width:700px){nav.main{display:none}details.menu{display:block}}
+@media (max-width:700px){header.top nav.main{display:none}header.top details.menu{display:block}}
 footer.site{border-top:1px solid var(--line);margin-top:40px;padding:18px 0 40px;color:var(--muted);font-size:14px}
 footer.site .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
 footer.site a{color:var(--muted)}

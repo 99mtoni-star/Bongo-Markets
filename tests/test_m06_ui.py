@@ -194,8 +194,11 @@ def test_responsive_layout_in_real_browser(pg, make_settings):
                     page.goto(f"http://localhost:{port}{path}")
                     overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
                     assert overflow <= 0, (width, path, overflow)
+                    brand = page.locator("header.top a.brand").bounding_box()
+                    assert brand and brand["height"] >= 20 and page.locator("header.top a.brand").is_visible()
                     menu_visible = page.locator("details.menu").is_visible()
                     assert menu_visible == (width < 700), (width, path)
+                    assert page.locator("header.top nav.main").is_visible() == (width >= 700), (width, path)
             browser.close()
     finally:
         server.should_exit = True
