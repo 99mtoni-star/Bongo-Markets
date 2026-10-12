@@ -608,3 +608,73 @@ tests:
     requirements: [SHOP-001, SHOP-004]
     title: "Swahili web flow: open a shop and add staff"
     protected: false
+  - id: M08-T001
+    module: M08
+    requirements: [PRD-001, PRD-002, BR-007]
+    title: "Products belong to one shop; staff cannot set prices; cross-shop edits are 404"
+    protected: true
+  - id: M08-T002
+    module: M08
+    requirements: [PRD-003]
+    title: "SKU is unique within a shop only"
+    protected: true
+  - id: M08-T003
+    module: M08
+    requirements: [PRD-004]
+    title: "Price and stock can never be negative (API and database); prices are NUMERIC"
+    protected: true
+  - id: M08-T004
+    module: M08
+    requirements: [BR-011]
+    title: "Marketplace visibility needs active product, marketplace flag and active shop"
+    protected: true
+  - id: M08-T005
+    module: M08
+    requirements: [PRD-005, V13-SEC-004, V13-REQ-005]
+    title: "Images are type-sniffed, size-limited, re-encoded without EXIF/GPS and served safely"
+    protected: true
+  - id: M08-T006
+    module: M08
+    requirements: [PRD-005, V13-SEC-004]
+    title: "Decompression-bomb images are rejected"
+    protected: true
+  - id: M08-T007
+    module: M08
+    requirements: [STK-001, STK-003]
+    title: "Reserve, commit and release adjust stock correctly with a 15-minute default"
+    protected: true
+  - id: M08-T008
+    module: M08
+    requirements: [STK-004, STK-001]
+    title: "Ten concurrent buyers of the last unit: exactly one succeeds"
+    protected: true
+  - id: M08-T009
+    module: M08
+    requirements: [STK-003, STK-001]
+    title: "Expired reservations release stock and can no longer be committed"
+    protected: true
+  - id: M08-T010
+    module: M08
+    requirements: [STK-002]
+    title: "Reservation timeout is configurable by an authorized admin with step-up"
+    protected: true
+  - id: M08-T011
+    module: M08
+    requirements: [STK-001]
+    title: "Stock cannot be reduced below currently reserved quantity"
+    protected: true
+  - id: M08-T012
+    module: M08
+    requirements: [BR-009, BR-010]
+    title: "Shop page shows only its own active products and category headings"
+    protected: true
+  - id: M08-T013
+    module: M08
+    requirements: [SEC-SDLC-005]
+    title: "Patch management defines severity-based remediation timelines"
+    protected: false
+  - id: M08-T014
+    module: M08
+    requirements: [PRD-001, PRD-005]
+    title: "Swahili seller flow: add product, upload photo, publish, visible to customers"
+    protected: false

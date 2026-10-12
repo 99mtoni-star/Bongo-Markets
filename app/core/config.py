@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     default_phone_region: str = "TZ"         # mobile-number-first identity (ID-002)
     dormant_account_days: int = 180          # ID-009: SMS-only reset refused after long inactivity
     closed_account_retention_days: int = 365  # SEC-COM-004
+    media_dir: str = "./media"                # product images (object storage + CDN in M20)
     notifier: str = "dev"                    # "dev" keeps SMS/email in memory; production needs a provider
 
     @property

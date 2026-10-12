@@ -133,7 +133,7 @@ def _manage_body(request: Request, svc: ShopService, ctx: SessionContext, slug: 
                    for h in svc.history(shop))
     return f"""<div class="hero"><h1>{escape(shop.name)}</h1>
 <p>{pill(shop.status)} · Jukumu lako: <b>{escape(ROLE_SW[me.role_code])}</b> ·
-<a href="/duka/{escape(slug)}">Angalia ukurasa wa wateja →</a></p></div>
+<a href="/maduka/{escape(slug)}/bidhaa">Bidhaa</a> · <a href="/duka/{escape(slug)}">Ukurasa wa wateja →</a></p></div>
 {alert(notice, "ok")}{banner}
 <div class="card"><h1 class="sm">Wanachama wa duka</h1>{err("wanachama")}
 <table><tbody>{''.join(rows)}</tbody></table>{add_form}</div>

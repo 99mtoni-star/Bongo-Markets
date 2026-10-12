@@ -141,11 +141,12 @@ def _browser_like_client(app, base_url="https://testserver"):
 
 
 @pytest.fixture
-def db_client(pg, make_settings):
+def db_client(pg, make_settings, tmp_path):
     from app.main import create_app
 
     app = create_app(make_settings(BM_ENVIRONMENT="test", BM_DATABASE_URL=pg.app_url,
-                                   BM_SECRET_KEY="test-secret-key-0123456789-abcdefghijkl"))
+                                   BM_SECRET_KEY="test-secret-key-0123456789-abcdefghijkl",
+                                   BM_MEDIA_DIR=str(tmp_path / "media")))
     # HTTPS so Secure cookies behave exactly as in a browser.
     return _browser_like_client(app)
 
